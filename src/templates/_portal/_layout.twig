@@ -1,0 +1,51 @@
+{#
+  A plain, unstyled shell for the fallback portal screens.
+
+  Forklift ships these so the portal works the moment the plugin is installed, and so a store can
+  see what the variables are before writing their own. Any of them is replaced by creating
+  `_forklift/portal/<name>.twig` in the site's own templates, which then wins outright — a B2B
+  portal has to look like the shop it is part of, and a plugin that insists on its own markup gets
+  replaced by a fortnight of overrides.
+#}
+<!DOCTYPE html>
+<html lang="{{ craft.app.language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ block('title') is defined ? block('title') : 'Account'|t('forklift') }}</title>
+    <style>
+        body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 2rem; color: #1d2126; background: #fff; }
+        main { max-width: 60rem; margin: 0 auto; }
+        h1 { font-size: 1.5rem; margin-top: 0; }
+        h2 { font-size: 1.15rem; margin-top: 2rem; }
+        nav a { margin-right: 1rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid #e3e5e8; }
+        th { font-weight: 600; }
+        .num { text-align: right; font-variant-numeric: tabular-nums; }
+        .muted { color: #6b7280; }
+        .warn { color: #b45309; }
+        .bad { color: #b91c1c; }
+        .good { color: #047857; }
+        label { display: block; margin: .75rem 0 .25rem; font-weight: 600; }
+        input, select, textarea { font: inherit; padding: .4rem .5rem; border: 1px solid #c4c8cd; border-radius: 3px; }
+        button { font: inherit; padding: .5rem 1rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+<main>
+    {% if company is defined and company %}
+        <nav>
+            <a href="{{ url('forklift/account') }}">{{ company.uiLabel }}</a>
+            <a href="{{ url('forklift/account/orders') }}">{{ 'Orders'|t('forklift') }}</a>
+            <a href="{{ url('forklift/account/quotes') }}">{{ 'Quotes'|t('forklift') }}</a>
+            <a href="{{ url('forklift/account/statement') }}">{{ 'Statement'|t('forklift') }}</a>
+            <a href="{{ url('forklift/account/buyers') }}">{{ 'Buyers'|t('forklift') }}</a>
+            <a href="{{ url('forklift/quick-order') }}">{{ 'Quick order'|t('forklift') }}</a>
+        </nav>
+    {% endif %}
+
+    {% block body %}{% endblock %}
+</main>
+</body>
+</html>

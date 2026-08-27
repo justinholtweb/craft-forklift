@@ -1,0 +1,77 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Forklift'|t('forklift'), url: url('forklift/settings') }] %}
+
+{% block sidebar %}{% include 'forklift/settings/_nav' %}{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/settings/save">
+    {{ redirectInput('forklift/settings/general') }}
+
+    {% include 'forklift/settings/_suppressed' %}
+
+    <h2>{{ 'Purchase orders'|t('forklift') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: 'Capture a purchase order number at checkout'|t('forklift'),
+        instructions: 'Company orders get a field for the reference their accounts department will match the invoice against.'|t('forklift'),
+        name: 'settings[capturePoNumber]',
+        on: settings.capturePoNumber,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Enforce it when the account demands one'|t('forklift'),
+        instructions: 'Refuse to complete an order with no PO number, for accounts marked as requiring one. Off makes the field a suggestion.'|t('forklift'),
+        name: 'settings[enforcePoNumber]',
+        on: settings.enforcePoNumber,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Tax exemption'|t('forklift') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: 'Honour exemption certificates at checkout'|t('forklift'),
+        instructions: 'Off keeps the certificates on file but charges tax as normal — useful while you are collecting documents. On, tax is removed for an **approved**, unexpired certificate that covers the delivery address.'|t('forklift')|md,
+        name: 'settings[applyTaxExemptions]',
+        on: settings.applyTaxExemptions,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Warn this many days before a certificate expires'|t('forklift'),
+        instructions: 'Zero turns the warning off.'|t('forklift'),
+        type: 'number',
+        min: 0,
+        size: 5,
+        name: 'settings[certificateExpiryWarningDays]',
+        value: settings.certificateExpiryWarningDays,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Quick order'|t('forklift') }}</h2>
+
+    {{ forms.textField({
+        label: 'Rows on the pad'|t('forklift'),
+        type: 'number',
+        min: 1,
+        max: 200,
+        size: 5,
+        name: 'settings[quickOrderRows]',
+        value: settings.quickOrderRows,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Most rows in one CSV upload'|t('forklift'),
+        instructions: 'A ceiling, so a mis-selected export fails with a message rather than an exhausted memory limit.'|t('forklift'),
+        type: 'number',
+        min: 1,
+        max: 10000,
+        size: 7,
+        name: 'settings[csvMaxRows]',
+        value: settings.csvMaxRows,
+    }) }}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Forklift'|t('forklift'), url: url('forklift/settings') }] %}
+
+{% block sidebar %}{% include 'forklift/settings/_nav' %}{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/settings/save">
+    {{ redirectInput('forklift/settings/quotes') }}
+
+    {% if not isPro %}
+        <p class="light">{{ 'Quotes need Forklift Pro.'|t('forklift') }}</p>
+    {% endif %}
+
+    <p class="light">
+        {{ 'Sending a quote builds a real Commerce cart carrying exactly the prices you set, and gives the customer a signed link that loads it into their own session. From there it is an ordinary checkout — every gateway you have, including paying on terms.'|t('forklift') }}
+    </p>
+
+    {{ forms.textField({
+        first: true,
+        label: 'Days a sent quote stays valid'|t('forklift'),
+        instructions: 'Used when you do not set a date of your own on the quote.'|t('forklift'),
+        type: 'number',
+        min: 1,
+        size: 5,
+        name: 'settings[quoteValidityDays]',
+        value: settings.quoteValidityDays,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Empty the basket once a quote has been requested'|t('forklift'),
+        instructions: 'On, so the customer does not check out at list price the thing they just asked you to price.'|t('forklift'),
+        name: 'settings[clearCartOnQuoteRequest]',
+        on: settings.clearCartOnQuoteRequest,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Email the store when a quote is requested'|t('forklift'),
+        name: 'settings[notifyOnQuoteRequest]',
+        on: settings.notifyOnQuoteRequest,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Where the pay-by-link sends the customer'|t('forklift'),
+        instructions: 'A path on your site — your basket or checkout page. Leave blank to use Commerce’s own load-cart redirect.'|t('forklift'),
+        name: 'settings[quoteRedirectUrl]',
+        value: settings.quoteRedirectUrl,
+        placeholder: 'shop/cart',
+    }) }}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends '_layouts/elementindex' %}
+
+{% set title = 'Quotes'|t('forklift') %}
+{% set elementType = 'justinholtweb\\forklift\\elements\\Quote' %}
+{% set selectedSubnavItem = 'quotes' %}
+
+{% block actionButton %}
+    {% if currentUser.can('forklift:manageQuotes') %}
+        <a href="{{ url('forklift/quotes/new') }}" class="btn submit add icon">{{ 'New quote'|t('forklift') }}</a>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends '_layouts/elementindex' %}
+
+{% set title = 'Companies'|t('forklift') %}
+{% set elementType = 'justinholtweb\\forklift\\elements\\Company' %}
+{% set selectedSubnavItem = 'companies' %}
+
+{% block actionButton %}
+    {% if currentUser.can('forklift:manageCompanies') %}
+        <a href="{{ url('forklift/companies/new') }}" class="btn submit add icon">{{ 'New company'|t('forklift') }}</a>
+    {% endif %}
+{% endblock %}

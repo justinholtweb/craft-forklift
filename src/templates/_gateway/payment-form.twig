@@ -1,0 +1,39 @@
+{#
+  What a buyer fills in to pay on account.
+
+  No card fields, because there is no card. The only thing the merchant needs at this moment is
+  the reference the customer's accounts-payable department will match the invoice against.
+
+  Note the input names have no namespace of their own: Commerce namespaces the payment form for
+  the gateway, so `poNumber` here arrives as the payment form model's `poNumber`.
+#}
+{% set order = order ?? craft.commerce.carts.cart %}
+{% set required = order ? gateway.getRequiresPoNumber(order) : false %}
+{% set description = order ? gateway.getTermsDescription(order) : null %}
+
+{% if description %}
+    <p class="forklift-terms">{{ description }}</p>
+{% endif %}
+
+<div class="forklift-po-number">
+    <label for="forklift-po-number">
+        {{ 'Purchase order number'|t('forklift') }}
+        {% if required %}<span class="required" aria-hidden="true">*</span>{% endif %}
+    </label>
+    <input type="text"
+           id="forklift-po-number"
+           name="poNumber"
+           value="{{ paymentForm.poNumber }}"
+           maxlength="128"
+           {{ required ? 'required' }}>
+    {% if paymentForm.getErrors('poNumber') %}
+        <ul class="errors">
+            {% for error in paymentForm.getErrors('poNumber') %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+</div>
+
+<div class="forklift-reference">
+    <label for="forklift-reference">{{ 'Reference for your invoice'|t('forklift') }}</label>
+    <input type="text" id="forklift-reference" name="reference" value="{{ paymentForm.reference }}" maxlength="128">
+</div>

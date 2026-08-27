@@ -1,0 +1,93 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set selectedTab = 'terms' %}
+{% set fullPageForm = true %}
+{% set crumbs = [
+    { label: 'Forklift'|t('forklift'), url: url('forklift/settings') },
+    { label: 'Payment terms'|t('forklift'), url: url('forklift/settings/terms') },
+] %}
+
+{% block sidebar %}{% include 'forklift/settings/_nav' %}{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/terms/save">
+    {{ redirectInput('forklift/settings/terms') }}
+    {% if not isNew %}<input type="hidden" name="termId" value="{{ term.id }}">{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: 'Name'|t('app'),
+        name: 'name',
+        value: term.name,
+        errors: term.getErrors('name'),
+        autofocus: true,
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Handle'|t('app'),
+        name: 'handle',
+        class: 'code',
+        value: term.handle,
+        errors: term.getErrors('handle'),
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Due after'|t('forklift'),
+        instructions: 'Days from the invoice date. Zero means due on receipt.'|t('forklift'),
+        type: 'number',
+        min: 0,
+        size: 5,
+        name: 'netDays',
+        value: term.netDays,
+        errors: term.getErrors('netDays'),
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Early settlement discount'|t('forklift') }}</h2>
+    <p class="light">{{ 'Leave both blank if you do not offer one.'|t('forklift') }}</p>
+
+    {{ forms.textField({
+        label: 'Discount'|t('forklift'),
+        type: 'number',
+        step: '0.01',
+        min: 0,
+        max: 100,
+        size: 6,
+        name: 'discountPercent',
+        value: term.discountPercent,
+        errors: term.getErrors('discountPercent'),
+        suffix: '%',
+    }) }}
+
+    {{ forms.textField({
+        label: 'If paid within'|t('forklift'),
+        instructions: 'Days. Cannot be longer than the terms themselves.'|t('forklift'),
+        type: 'number',
+        min: 0,
+        size: 5,
+        name: 'discountDays',
+        value: term.discountDays,
+        errors: term.getErrors('discountDays'),
+    }) }}
+
+    <hr>
+
+    {{ forms.textareaField({
+        label: 'Description'|t('app'),
+        instructions: 'Shown to the buyer at checkout.'|t('forklift'),
+        name: 'description',
+        value: term.description,
+        rows: 3,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Enabled'|t('app'),
+        name: 'enabled',
+        on: term.enabled,
+    }) }}
+{% endblock %}

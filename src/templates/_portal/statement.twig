@@ -1,0 +1,49 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    <h1>{{ 'Statement'|t('forklift') }}</h1>
+    <p class="muted">{{ '{from} to {to}'|t('forklift', { from: statement.from|date('long'), to: statement.to|date('long') }) }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>{{ 'Date'|t('app') }}</th>
+                <th>{{ 'Type'|t('forklift') }}</th>
+                <th>{{ 'Reference'|t('forklift') }}</th>
+                <th>{{ 'Due'|t('forklift') }}</th>
+                <th class="num">{{ 'Amount'|t('forklift') }}</th>
+                <th class="num">{{ 'Balance'|t('forklift') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="muted"><td colspan="5">{{ 'Balance brought forward'|t('forklift') }}</td><td class="num">{{ statement.openingBalance|number_format(2) }}</td></tr>
+            {% set running = statement.openingBalance %}
+            {% for entry in statement.entries %}
+                {% set running = running + entry.amount %}
+                <tr>
+                    <td>{{ entry.entryDate ? entry.entryDate|date('short') }}</td>
+                    <td>{{ entry.typeLabel }}</td>
+                    <td>{{ entry.reference }}</td>
+                    <td class="{{ entry.isOverdue ? 'bad' }}">{{ entry.dueDate ? entry.dueDate|date('short') : '' }}</td>
+                    <td class="num">{{ entry.amount|number_format(2) }}</td>
+                    <td class="num">{{ running|number_format(2) }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="muted">{{ 'Nothing moved in this period.'|t('forklift') }}</td></tr>
+            {% endfor %}
+            <tr><td colspan="5"><strong>{{ 'Balance carried forward'|t('forklift') }}</strong></td><td class="num"><strong>{{ statement.closingBalance|number_format(2) }}</strong></td></tr>
+        </tbody>
+    </table>
+
+    <h2>{{ 'Aged'|t('forklift') }}</h2>
+    <table>
+        <thead><tr>{% for days, label in statement.agingLabels %}<th class="num">{{ label }}</th>{% endfor %}</tr></thead>
+        <tbody>
+            <tr>
+                {% for days, label in statement.agingLabels %}
+                    <td class="num {{ days > 0 and (statement.aging[days] ?? 0) > 0 ? 'bad' }}">{{ (statement.aging[days] ?? 0)|number_format(2) }}</td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

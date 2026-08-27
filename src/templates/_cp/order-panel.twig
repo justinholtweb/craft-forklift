@@ -1,0 +1,78 @@
+{#
+  Forklift's panel on Commerce's own order edit screen.
+
+  Deliberately small, and read-mostly. Commerce owns this screen; Forklift is a guest on it and
+  shows the three things Commerce has nowhere to put — which account this order belongs to, the
+  purchase order number, and what approval it went through.
+
+  Every value is guarded. A hook that throws takes down the *whole* order screen for every order
+  in the store, which is a spectacular way to break somebody's afternoon.
+#}
+{% if company or poNumber or approval or quote or (row.approvalBypassed ?? false) %}
+    <div class="pane">
+        <h2>{{ 'Forklift'|t('forklift') }}</h2>
+
+        <table class="data fullwidth">
+            <tbody>
+                {% if company %}
+                    <tr>
+                        <th class="thin">{{ 'Company'|t('forklift') }}</th>
+                        <td>
+                            <a href="{{ company.cpEditUrl }}">{{ company.uiLabel }}</a>
+                            {% if company.accountStatus != 'active' %}
+                                <span class="error">{{ company.accountStatus == 'hold' ? 'on hold'|t('forklift') : 'closed'|t('forklift') }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+
+                {% if poNumber %}
+                    <tr>
+                        <th>{{ 'PO number'|t('forklift') }}</th>
+                        <td><code>{{ poNumber }}</code></td>
+                    </tr>
+                {% endif %}
+
+                {% if terms %}
+                    <tr>
+                        <th>{{ 'Terms'|t('forklift') }}</th>
+                        <td>
+                            {{ terms.shorthand }}
+                            {% if row.dueDate ?? null %}
+                                <span class="light">{{ 'due {date}'|t('forklift', { date: row.dueDate|date('short') }) }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+
+                {% if approval %}
+                    <tr>
+                        <th>{{ 'Approval'|t('forklift') }}</th>
+                        <td>
+                            <a href="{{ approval.cpEditUrl }}">{{ approval.statusLabel }}</a>
+                            {% if approval.approver %}
+                                <span class="light">{{ '— {name}'|t('forklift', { name: approval.approver.name }) }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+
+                {% if row.approvalBypassed ?? false %}
+                    <tr>
+                        <th>{{ 'Approval'|t('forklift') }}</th>
+                        <td class="error">
+                            {{ 'This order needed approval but completed without one, because a Pro licence was not active.'|t('forklift') }}
+                        </td>
+                    </tr>
+                {% endif %}
+
+                {% if quote %}
+                    <tr>
+                        <th>{{ 'From quote'|t('forklift') }}</th>
+                        <td><a href="{{ quote.cpEditUrl }}">{{ quote.number }}</a></td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}

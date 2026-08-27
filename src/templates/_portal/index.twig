@@ -1,0 +1,85 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    {% if not company %}
+        <h1>{{ 'No company account'|t('forklift') }}</h1>
+        {% if companies|length > 1 %}
+            <p>{{ 'You buy for more than one account. Choose which one this basket is for.'|t('forklift') }}</p>
+            <form method="post" accept-charset="UTF-8">
+                {{ csrfInput() }}
+                <input type="hidden" name="action" value="forklift/companies/switch">
+                {{ redirectInput('forklift/account') }}
+                <select name="companyId">
+                    {% for option in companies %}<option value="{{ option.id }}">{{ option.uiLabel }}</option>{% endfor %}
+                </select>
+                <button type="submit">{{ 'Continue'|t('forklift') }}</button>
+            </form>
+        {% else %}
+            <p class="muted">{{ 'Your sign-in is not attached to a trade account.'|t('forklift') }}</p>
+        {% endif %}
+    {% else %}
+        <h1>{{ company.uiLabel }}</h1>
+
+        <table>
+            <tbody>
+                <tr><th>{{ 'Account code'|t('forklift') }}</th><td>{{ company.code }}</td></tr>
+                <tr><th>{{ 'Your role'|t('forklift') }}</th><td>{{ member ? member.roleLabel : '' }}</td></tr>
+                {% if member and member.spendLimit is not null %}
+                    <tr><th>{{ 'Your spend limit'|t('forklift') }}</th><td class="num">{{ member.spendLimit|number_format(2) }}</td></tr>
+                {% endif %}
+                {% if balance is not null %}
+                    <tr><th>{{ 'Balance'|t('forklift') }}</th><td class="num">{{ balance|number_format(2) }}</td></tr>
+                    <tr>
+                        <th>{{ 'Credit available'|t('forklift') }}</th>
+                        <td class="num {{ creditAvailable is not null and creditAvailable < 0 ? 'bad' }}">
+                            {{ creditAvailable is null ? 'No limit'|t('forklift') : creditAvailable|number_format(2) }}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if company.terms %}
+                    <tr><th>{{ 'Payment terms'|t('forklift') }}</th><td>{{ company.terms.shorthand }}</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        {% if company.accountStatus != 'active' %}
+            <p class="bad">
+                {{ company.accountStatus == 'hold'
+                    ? 'This account is on hold. Please get in touch before ordering.'|t('forklift')
+                    : 'This account is closed.'|t('forklift') }}
+            </p>
+        {% endif %}
+
+        {% if pendingApprovals|length %}
+            <h2>{{ 'Waiting for your decision'|t('forklift') }}</h2>
+            <table>
+                <thead><tr><th>{{ 'Buyer'|t('forklift') }}</th><th>{{ 'Amount'|t('forklift') }}</th><th>{{ 'Why'|t('forklift') }}</th><th></th></tr></thead>
+                <tbody>
+                    {% for approval in pendingApprovals %}
+                        <tr>
+                            <td>{{ approval.requester ? approval.requester.name : '' }}</td>
+                            <td class="num">{{ approval.amount|number_format(2) }}</td>
+                            <td class="muted">{{ approval.reasonLabel }}</td>
+                            <td><a href="{{ approval.decisionUrl }}">{{ 'Review'|t('forklift') }}</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        {% if companies|length > 1 %}
+            <h2>{{ 'Switch account'|t('forklift') }}</h2>
+            <form method="post" accept-charset="UTF-8">
+                {{ csrfInput() }}
+                <input type="hidden" name="action" value="forklift/companies/switch">
+                {{ redirectInput('forklift/account') }}
+                <select name="companyId">
+                    {% for option in companies %}
+                        <option value="{{ option.id }}" {{ option.id == company.id ? 'selected' }}>{{ option.uiLabel }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">{{ 'Switch'|t('forklift') }}</button>
+            </form>
+        {% endif %}
+    {% endif %}
+{% endblock %}

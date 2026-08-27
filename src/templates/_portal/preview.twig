@@ -1,0 +1,72 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    <h1>{{ result.dryRun ? 'Check your list'|t('forklift') : 'Added to your basket'|t('forklift') }}</h1>
+
+    {% if result.fatalError %}
+        <p class="bad">{{ result.fatalError }}</p>
+    {% endif %}
+
+    {% if not result.dryRun and result.added > 0 %}
+        <p class="good">{{ '{count} lines added.'|t('forklift', { count: result.added }) }}</p>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>{{ 'Line'|t('forklift') }}</th>
+                <th>{{ 'SKU'|t('forklift') }}</th>
+                <th>{{ 'Description'|t('app') }}</th>
+                <th class="num">{{ 'Qty'|t('forklift') }}</th>
+                <th class="num">{{ 'Each'|t('forklift') }}</th>
+                <th class="num">{{ 'Total'|t('forklift') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in result.rows %}
+                <tr>
+                    <td class="muted">{{ row.lineNumber }}</td>
+                    <td>{{ row.sku }}</td>
+                    <td>{{ row.description }}</td>
+                    <td class="num">{{ row.qty }}</td>
+                    <td class="num">{{ row.price ? row.price.price|number_format(2) : '' }}</td>
+                    <td class="num">{{ row.isValid ? row.subtotal|number_format(2) : '' }}</td>
+                    <td>
+                        {% if row.error %}<span class="bad">{{ row.error }}</span>{% endif %}
+                        {% if row.warning %}<span class="warn">{{ row.warning }}</span>{% endif %}
+                        {% if row.isValid and row.price and row.price.isContractPrice %}
+                            <span class="muted">{{ row.price.sourceLabel }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="5">{{ 'Subtotal'|t('forklift') }}</th>
+                <th class="num">{{ result.subtotal|number_format(2) }}</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if result.dryRun and result.validRows|length %}
+        {# The valid rows are resubmitted, so a bad line does not have to be fixed before the good
+           ones can be ordered — a buyer pasting two hundred lines wants the hundred and
+           ninety-eight that were fine. #}
+        <form method="post" accept-charset="UTF-8">
+            {{ csrfInput() }}
+            <input type="hidden" name="action" value="forklift/quick-order/add">
+            {{ redirectInput('forklift/quick-order') }}
+            {% for i, row in result.validRows %}
+                <input type="hidden" name="rows[{{ i }}][sku]" value="{{ row.sku }}">
+                <input type="hidden" name="rows[{{ i }}][qty]" value="{{ row.qty }}">
+                {% if row.note %}<input type="hidden" name="rows[{{ i }}][note]" value="{{ row.note }}">{% endif %}
+            {% endfor %}
+            <button type="submit">{{ 'Add {count} lines to my basket'|t('forklift', { count: result.validRows|length }) }}</button>
+        </form>
+    {% endif %}
+
+    <p><a href="{{ url('forklift/quick-order') }}">{{ 'Back to the pad'|t('forklift') }}</a></p>
+{% endblock %}

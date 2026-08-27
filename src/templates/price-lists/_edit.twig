@@ -1,0 +1,102 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'price-lists' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Price lists'|t('forklift'), url: url('forklift/price-lists') }] %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/price-lists/save">
+    {{ redirectInput('forklift/price-lists') }}
+    {% if not isNew %}<input type="hidden" name="priceListId" value="{{ priceList.id }}">{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: 'Name'|t('app'),
+        name: 'name',
+        value: priceList.name,
+        errors: priceList.getErrors('name'),
+        autofocus: true,
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Handle'|t('app'),
+        name: 'handle',
+        class: 'code',
+        value: priceList.handle,
+        errors: priceList.getErrors('handle'),
+        required: true,
+    }) }}
+
+    {{ forms.textareaField({
+        label: 'Description'|t('app'),
+        instructions: 'For your own reference — never shown to a customer.'|t('forklift'),
+        name: 'description',
+        value: priceList.description,
+        rows: 3,
+    }) }}
+
+    {% if not isNew %}
+        <hr>
+        <p>
+            <a class="btn" href="{{ url('forklift/price-lists/' ~ priceList.id ~ '/entries') }}">
+                {{ '{count} prices'|t('forklift', { count: entryCount }) }}
+            </a>
+            <a class="btn" href="{{ url('forklift/price-lists/' ~ priceList.id ~ '/import') }}">{{ 'Import'|t('forklift') }}</a>
+            <a class="btn" href="{{ actionUrl('forklift/price-lists/export', { priceListId: priceList.id }) }}">{{ 'Export'|t('forklift') }}</a>
+        </p>
+    {% endif %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta">
+        {{ forms.lightswitchField({
+            label: 'Enabled'|t('app'),
+            name: 'enabled',
+            on: priceList.enabled,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Priority'|t('forklift'),
+            instructions: 'Higher wins where two lists both price a product. Ties break on the older list.'|t('forklift'),
+            type: 'number',
+            size: 5,
+            name: 'priority',
+            value: priceList.priority,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Applies to every company'|t('forklift'),
+            instructions: 'A trade tier that every account gets. Leave off to name the customers.'|t('forklift'),
+            name: 'allCompanies',
+            on: priceList.allCompanies,
+        }) }}
+
+        {{ forms.dateField({
+            label: 'Active from'|t('forklift'),
+            name: 'dateFrom',
+            value: priceList.dateFrom,
+        }) }}
+
+        {{ forms.dateField({
+            label: 'Active until'|t('forklift'),
+            name: 'dateTo',
+            value: priceList.dateTo,
+            errors: priceList.getErrors('dateTo'),
+        }) }}
+    </div>
+
+    {% if not priceList.allCompanies %}
+        <div class="meta">
+            {{ forms.elementSelectField({
+                label: 'Companies'|t('forklift'),
+                instructions: 'Who gets these prices.'|t('forklift'),
+                name: 'companyIds',
+                elementType: 'justinholtweb\\forklift\\elements\\Company',
+                elements: companies,
+                limit: null,
+            }) }}
+        </div>
+    {% endif %}
+{% endblock %}

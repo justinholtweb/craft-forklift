@@ -1,0 +1,64 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    <h1>{{ 'Buyers'|t('forklift') }}</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>{{ 'Name'|t('app') }}</th>
+                <th>{{ 'Email'|t('app') }}</th>
+                <th>{{ 'Role'|t('forklift') }}</th>
+                <th class="num">{{ 'Spend limit'|t('forklift') }}</th>
+                {% if canManage %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in members %}
+                <tr>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.email }}</td>
+                    <td>{{ row.roleLabel }}</td>
+                    <td class="num">{{ row.spendLimit is null ? 'No limit'|t('forklift') : row.spendLimit|number_format(2) }}</td>
+                    {% if canManage %}
+                        <td>
+                            {% if row.id != member.id %}
+                                <form method="post" accept-charset="UTF-8">
+                                    {{ csrfInput() }}
+                                    <input type="hidden" name="action" value="forklift/portal/remove-buyer">
+                                    <input type="hidden" name="memberId" value="{{ row.id }}">
+                                    {{ redirectInput('forklift/account/buyers') }}
+                                    <button type="submit">{{ 'Remove'|t('forklift') }}</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if canManage %}
+        <h2>{{ 'Add a buyer'|t('forklift') }}</h2>
+        <p class="muted">{{ 'They need an account on this site already.'|t('forklift') }}</p>
+
+        <form method="post" accept-charset="UTF-8">
+            {{ csrfInput() }}
+            <input type="hidden" name="action" value="forklift/portal/save-buyer">
+            {{ redirectInput('forklift/account/buyers') }}
+
+            <label for="forklift-buyer-email">{{ 'Email address'|t('forklift') }}</label>
+            <input type="email" id="forklift-buyer-email" name="email" required>
+
+            <label for="forklift-buyer-role">{{ 'Role'|t('forklift') }}</label>
+            <select id="forklift-buyer-role" name="role">
+                {% for option in roleOptions %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
+            </select>
+
+            <label for="forklift-buyer-limit">{{ 'Spend limit per order'|t('forklift') }}</label>
+            <input type="number" id="forklift-buyer-limit" name="spendLimit" step="0.01" min="0">
+
+            <p><button type="submit">{{ 'Add buyer'|t('forklift') }}</button></p>
+        </form>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set selectedTab = 'terms' %}
+{% set crumbs = [{ label: 'Forklift'|t('forklift'), url: url('forklift/settings') }] %}
+
+{% block sidebar %}{% include 'forklift/settings/_nav' %}{% endblock %}
+
+{% block actionButton %}
+    <a href="{{ url('forklift/settings/terms/new') }}" class="btn submit add icon">{{ 'New terms'|t('forklift') }}</a>
+{% endblock %}
+
+{% block content %}
+    <p class="light">
+        {{ 'What an account is invoiced on. The early-settlement half of “2/10 Net 30” is kept as the pair of numbers it really is, so you can work out later who took it.'|t('forklift') }}
+    </p>
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th>{{ 'Name'|t('app') }}</th>
+                <th>{{ 'Handle'|t('app') }}</th>
+                <th>{{ 'Shorthand'|t('forklift') }}</th>
+                <th>{{ 'Due after'|t('forklift') }}</th>
+                <th>{{ 'Enabled'|t('app') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for term in terms %}
+                <tr>
+                    <td><a href="{{ url('forklift/settings/terms/' ~ term.id) }}">{{ term.name }}</a></td>
+                    <td><code>{{ term.handle }}</code></td>
+                    <td>{{ term.shorthand }}</td>
+                    <td>{{ term.netDays == 0 ? 'Immediately'|t('forklift') : '{days} days'|t('forklift', { days: term.netDays }) }}</td>
+                    <td>{{ term.enabled ? 'Yes'|t('app') : '' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="light">{{ 'No payment terms yet.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

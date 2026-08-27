@@ -1,0 +1,18 @@
+{#
+  What a lapsed licence is currently ignoring.
+
+  Named rather than counted. "Some settings are unavailable" tells a merchant nothing; "price
+  lists exist but are not being applied — buyers are paying list price" tells them what is
+  happening to their money right now.
+#}
+{% if suppressed is defined and suppressed|length %}
+    <div class="pane" style="border-left: 3px solid var(--warning-color);">
+        <h2>{{ 'Forklift Pro features are not active'|t('forklift') }}</h2>
+        <ul class="bullets">
+            {% for line in suppressed %}<li>{{ line }}</li>{% endfor %}
+        </ul>
+        <p class="light">
+            {{ 'Nothing has been deleted. This configuration starts working again the moment a Pro licence is active.'|t('forklift') }}
+        </p>
+    </div>
+{% endif %}

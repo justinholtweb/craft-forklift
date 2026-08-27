@@ -1,0 +1,44 @@
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'approvals' %}
+{% set title = 'Approvals'|t('forklift') %}
+
+{% block content %}
+    {% if bypassedCount > 0 %}
+        <div class="pane" style="border-left: 3px solid var(--error-color);">
+            <p>
+                {{ '{count} orders completed without the approval they should have had, because a Pro licence was not active at the time.'|t('forklift', { count: bypassedCount }) }}
+                {{ 'Forklift lets these through rather than breaking checkout, but it marks every one.'|t('forklift') }}
+            </p>
+        </div>
+    {% endif %}
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th>{{ 'Requested'|t('forklift') }}</th>
+                <th>{{ 'Company'|t('forklift') }}</th>
+                <th>{{ 'Buyer'|t('forklift') }}</th>
+                <th>{{ 'Amount'|t('forklift') }}</th>
+                <th>{{ 'Why'|t('forklift') }}</th>
+                <th>{{ 'Lapses'|t('forklift') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for approval in approvals %}
+                <tr>
+                    <td>{{ approval.requestedDate ? approval.requestedDate|datetime('short') }}</td>
+                    <td>{{ approval.company ? approval.company.uiLabel : '' }}</td>
+                    <td>{{ approval.requester ? approval.requester.name : '' }}</td>
+                    <td>{{ approval.amount|number_format(2) }}</td>
+                    <td class="light">{{ approval.reasonLabel }}</td>
+                    <td>{{ approval.expiryDate ? approval.expiryDate|date('short') : 'Never'|t('forklift') }}</td>
+                    <td class="thin"><a class="btn small" href="{{ url('forklift/approvals/' ~ approval.id) }}">{{ 'Review'|t('forklift') }}</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7" class="light">{{ 'Nothing is waiting for a decision.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

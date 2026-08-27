@@ -1,0 +1,36 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    <h1>{{ 'Quotes'|t('forklift') }}</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>{{ 'Quote'|t('forklift') }}</th>
+                <th>{{ 'Your reference'|t('forklift') }}</th>
+                <th>{{ 'Status'|t('app') }}</th>
+                <th>{{ 'Valid until'|t('forklift') }}</th>
+                <th class="num">{{ 'Total'|t('forklift') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for quote in quotes %}
+                <tr>
+                    <td>{{ quote.number }}</td>
+                    <td>{{ quote.reference }}</td>
+                    <td>{{ quote.effectiveStatus }}</td>
+                    <td class="{{ quote.isExpired ? 'bad' }}">{{ quote.expiryDate ? quote.expiryDate|date('short') : '—' }}</td>
+                    <td class="num">{{ quote.total|number_format(2) }}</td>
+                    <td>
+                        {% if quote.isAcceptable %}
+                            <a href="{{ quote.paymentUrl }}">{{ 'Accept and check out'|t('forklift') }}</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="muted">{{ 'No quotes yet.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

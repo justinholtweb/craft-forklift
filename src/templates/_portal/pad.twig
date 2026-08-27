@@ -1,0 +1,52 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    <h1>{{ 'Quick order'|t('forklift') }}</h1>
+    <p class="muted">
+        {{ 'Type part numbers and quantities. Nothing is guessed — a SKU that cannot be found is reported rather than replaced with the nearest thing to it.'|t('forklift') }}
+    </p>
+
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        <input type="hidden" name="action" value="forklift/quick-order/add">
+        {{ redirectInput('forklift/quick-order') }}
+
+        <table>
+            <thead><tr><th>{{ 'SKU'|t('forklift') }}</th><th class="num">{{ 'Quantity'|t('forklift') }}</th></tr></thead>
+            <tbody>
+                {% for i in 0..(rows - 1) %}
+                    <tr>
+                        <td><input type="text" name="rows[{{ i }}][sku]" size="24" autocomplete="off"></td>
+                        <td class="num"><input type="number" name="rows[{{ i }}][qty]" min="1" size="5"></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p>
+            <button type="submit">{{ 'Add to basket'|t('forklift') }}</button>
+            <button type="submit" formaction="{{ actionUrl('forklift/quick-order/preview') }}">{{ 'Check prices first'|t('forklift') }}</button>
+        </p>
+    </form>
+
+    {% if allowCsv %}
+        <h2>{{ 'Upload a list'|t('forklift') }}</h2>
+        <p class="muted">
+            {{ 'A CSV of SKUs and quantities. A header row is skipped, the columns may be either way round, and a third column becomes a note on the line. You will see what it found before anything is added.'|t('forklift') }}
+        </p>
+
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+            {{ csrfInput() }}
+            <input type="hidden" name="action" value="forklift/quick-order/preview">
+            {{ redirectInput('forklift/quick-order') }}
+
+            <label for="forklift-csv-file">{{ 'CSV file'|t('forklift') }}</label>
+            <input type="file" id="forklift-csv-file" name="file" accept=".csv,text/csv">
+
+            <label for="forklift-csv-text">{{ 'Or paste it'|t('forklift') }}</label>
+            <textarea id="forklift-csv-text" name="csv" rows="6" cols="40"></textarea>
+
+            <p><button type="submit">{{ 'Check the list'|t('forklift') }}</button></p>
+        </form>
+    {% endif %}
+{% endblock %}

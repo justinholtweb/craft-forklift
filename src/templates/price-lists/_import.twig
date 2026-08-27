@@ -1,0 +1,43 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'price-lists' %}
+{% set fullPageForm = true %}
+{% set crumbs = [
+    { label: 'Price lists'|t('forklift'), url: url('forklift/price-lists') },
+    { label: priceList.name, url: url('forklift/price-lists/' ~ priceList.id) },
+] %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/price-lists/run-import">
+    <input type="hidden" name="priceListId" value="{{ priceList.id }}">
+
+    <div class="pane" style="border-left: 3px solid var(--warning-color);">
+        <p>
+            {{ 'This **replaces** every price in “{name}”. The spreadsheet is the contract — a row you deleted from it should not survive in the store because nothing mentioned it.'|t('forklift', { name: priceList.name })|md }}
+        </p>
+    </div>
+
+    <p class="light">
+        {{ 'Columns: `sku, price, minQty`. The quantity is optional and defaults to 1. A price ending in `%` is treated as a percentage off the list price, so it tracks a price rise instead of quietly eroding your margin.'|t('forklift')|md }}
+    </p>
+
+    <pre><code>sku,price,minQty
+FIX-M8-100,3.40,1
+FIX-M8-100,3.05,50
+FIX-M8-100,2.80,250
+BRK-STEEL-L,12%,1</code></pre>
+
+    {{ forms.fileField({
+        label: 'CSV file'|t('forklift'),
+        name: 'file',
+        accept: '.csv,text/csv',
+    }) }}
+
+    {{ forms.textareaField({
+        label: 'Or paste it'|t('forklift'),
+        name: 'csv',
+        rows: 10,
+        class: 'code',
+    }) }}
+{% endblock %}

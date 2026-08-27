@@ -1,0 +1,19 @@
+{% import '_includes/forms' as forms %}
+
+<p class="light">
+    {{ 'Paying on terms is an authorisation, not a payment: completing checkout records an **authorised** transaction, the order completes, and `totalPaid` stays at zero — which is true, because nobody has paid yet. Capture the transaction when the money arrives and Commerce marks the order paid with its own machinery.'|t('forklift')|md }}
+</p>
+
+<p class="light">
+    {{ 'This gateway offers itself only to a company account that is set up for terms, is not on hold, and would not go past its credit limit. A customer over their limit is not refused checkout — they simply pay another way.'|t('forklift') }}
+</p>
+
+{{ forms.selectField({
+    label: 'Payment type'|t('commerce'),
+    instructions: 'Leave this on Authorise. A purchase marks the order paid, and an order on thirty-day terms is not paid.'|t('forklift'),
+    id: 'paymentType',
+    name: 'paymentType',
+    options: gateway.getPaymentTypeOptions(),
+    value: gateway.paymentType,
+    errors: gateway.getErrors('paymentType'),
+}) }}

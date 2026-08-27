@@ -1,0 +1,45 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Forklift'|t('forklift'), url: url('forklift/settings') }] %}
+
+{% block sidebar %}{% include 'forklift/settings/_nav' %}{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/settings/save">
+    {{ redirectInput('forklift/settings/credit') }}
+
+    {% if not isPro %}
+        <p class="light">{{ 'Credit needs Forklift Pro. The purchase-order gateway is unavailable without it, so no new credit can be opened — existing invoices are untouched.'|t('forklift') }}</p>
+    {% endif %}
+
+    {{ forms.lightswitchField({
+        first: true,
+        label: 'Count an order against the credit limit the moment it is placed'|t('forklift'),
+        instructions: 'On. The alternative — counting only invoices that have been raised — lets a buyer place six orders in an afternoon that each pass the check on their own.'|t('forklift'),
+        name: 'settings[reserveCreditOnOrder]',
+        on: settings.reserveCreditOnOrder,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Aging buckets'|t('forklift'),
+        instructions: 'Days overdue, ascending, comma separated. The last one is open-ended, so `30, 60, 90` gives you current, 30–59, 60–89 and 90+.'|t('forklift')|md,
+        name: 'settings[agingBuckets]',
+        value: settings.agingBuckets|join(', '),
+        class: 'code',
+        size: 20,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Payment terms'|t('forklift') }}</h2>
+    <p class="light">
+        {{ 'Named terms — Net 30, 2/10 Net 30 — live on their own screen, and each account is put on one.'|t('forklift') }}
+    </p>
+    <p>
+        <a class="btn" href="{{ url('forklift/settings/terms') }}">{{ 'Payment terms'|t('forklift') }}</a>
+        <span class="light">{{ '{count} configured'|t('forklift', { count: terms|length }) }}</span>
+    </p>
+{% endblock %}

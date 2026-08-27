@@ -1,0 +1,50 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    <h1>{{ 'Approval'|t('forklift') }}</h1>
+
+    {% if error %}<p class="bad">{{ error }}</p>{% endif %}
+
+    <table>
+        <tbody>
+            <tr><th>{{ 'Status'|t('app') }}</th><td>{{ approval.statusLabel }}</td></tr>
+            <tr><th>{{ 'Company'|t('forklift') }}</th><td>{{ company ? company.uiLabel : '' }}</td></tr>
+            <tr><th>{{ 'Buyer'|t('forklift') }}</th><td>{{ approval.requester ? approval.requester.name : '' }}</td></tr>
+            <tr><th>{{ 'Amount'|t('forklift') }}</th><td class="num">{{ approval.amount|number_format(2) }}</td></tr>
+            <tr><th>{{ 'Why'|t('forklift') }}</th><td class="muted">{{ approval.reasonLabel }}</td></tr>
+            {% if approval.note %}<tr><th>{{ 'Their note'|t('forklift') }}</th><td>{{ approval.note }}</td></tr>{% endif %}
+        </tbody>
+    </table>
+
+    {% if order and order.lineItems|length %}
+        <h2>{{ 'What was ordered'|t('forklift') }}</h2>
+        <table>
+            <thead><tr><th>{{ 'SKU'|t('forklift') }}</th><th>{{ 'Description'|t('app') }}</th><th class="num">{{ 'Qty'|t('forklift') }}</th><th class="num">{{ 'Each'|t('forklift') }}</th><th class="num">{{ 'Total'|t('forklift') }}</th></tr></thead>
+            <tbody>
+                {% for item in order.lineItems %}
+                    <tr>
+                        <td>{{ item.sku }}</td>
+                        <td>{{ item.description }}</td>
+                        <td class="num">{{ item.qty }}</td>
+                        <td class="num">{{ item.salePrice|number_format(2) }}</td>
+                        <td class="num">{{ item.subtotal|number_format(2) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if approval.isPending %}
+        <form method="post" accept-charset="UTF-8">
+            {{ csrfInput() }}
+            <label for="forklift-approval-note">{{ 'Note for the buyer'|t('forklift') }}</label>
+            <textarea id="forklift-approval-note" name="note" rows="3"></textarea>
+            <p>
+                <button type="submit" name="decision" value="approve">{{ 'Approve'|t('forklift') }}</button>
+                <button type="submit" name="decision" value="decline">{{ 'Decline'|t('forklift') }}</button>
+            </p>
+        </form>
+    {% elseif approval.decisionNote %}
+        <p class="muted">{{ approval.decisionNote }}</p>
+    {% endif %}
+{% endblock %}

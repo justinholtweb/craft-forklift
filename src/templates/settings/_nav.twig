@@ -1,0 +1,28 @@
+{#
+  The settings sidebar.
+
+  Forklift's configuration really is several screens — how accounts are assigned, what a quote
+  does, how credit behaves, what a company's own fields are — and one long scrolling pane is how
+  nobody ever finds the aging buckets.
+#}
+<nav>
+    <ul>
+        {% set items = [
+            { key: 'general', label: 'General'|t('forklift'), url: 'forklift/settings/general' },
+            { key: 'companies', label: 'Companies and buyers'|t('forklift'), url: 'forklift/settings/companies' },
+            { key: 'quotes', label: 'Quotes'|t('forklift'), url: 'forklift/settings/quotes' },
+            { key: 'credit', label: 'Credit and terms'|t('forklift'), url: 'forklift/settings/credit' },
+            { key: 'terms', label: 'Payment terms'|t('forklift'), url: 'forklift/settings/terms' },
+            { key: 'fields', label: 'Company fields'|t('forklift'), url: 'forklift/settings/fields' },
+            { key: 'quote-fields', label: 'Quote fields'|t('forklift'), url: 'forklift/settings/quote-fields' },
+        ] %}
+
+        {% for item in items %}
+            <li>
+                <a href="{{ url(item.url) }}" class="{{ (selectedTab ?? '') == item.key ? 'sel' }}">
+                    {{ item.label }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</nav>

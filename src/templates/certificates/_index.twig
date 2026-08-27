@@ -1,0 +1,74 @@
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'certificates' %}
+
+{% block actionButton %}
+    <a href="{{ url('forklift/certificates/new', company ? { companyId: company.id } : {}) }}" class="btn submit add icon">
+        {{ 'New certificate'|t('forklift') }}
+    </a>
+{% endblock %}
+
+{% block content %}
+    <p class="light">
+        {{ 'Tax is only removed for an **approved**, unexpired certificate that covers the delivery address. A Texas resale certificate does not exempt a delivery to Ohio, and quietly letting it would be Forklift creating a tax liability on your behalf.'|t('forklift')|md }}
+    </p>
+
+    {% if expiring|length %}
+        <div class="pane" style="border-left: 3px solid var(--warning-color);">
+            <h2>{{ 'Expiring or expired'|t('forklift') }}</h2>
+            <ul class="bullets">
+                {% for certificate in expiring %}
+                    <li>
+                        <a href="{{ url('forklift/certificates/' ~ certificate.id) }}">{{ certificate.name }}</a>
+                        —
+                        {% set days = certificate.daysUntilExpiry %}
+                        {{ days is not null and days < 0
+                            ? 'expired {days} days ago'|t('forklift', { days: days|abs })
+                            : 'expires in {days} days'|t('forklift', { days: days }) }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th>{{ 'Certificate'|t('forklift') }}</th>
+                {% if not company %}<th>{{ 'Company'|t('forklift') }}</th>{% endif %}
+                <th>{{ 'Number'|t('forklift') }}</th>
+                <th>{{ 'Good for'|t('forklift') }}</th>
+                <th>{{ 'Expires'|t('forklift') }}</th>
+                <th>{{ 'Status'|t('app') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for certificate in certificates %}
+                <tr>
+                    <td><a href="{{ url('forklift/certificates/' ~ certificate.id) }}">{{ certificate.name }}</a></td>
+                    {% if not company %}
+                        <td>{{ companyNames[certificate.companyId] ?? '' }}</td>
+                    {% endif %}
+                    <td><code>{{ certificate.certificateNumber }}</code></td>
+                    <td>{{ certificate.scopeLabel }}</td>
+                    <td>{{ certificate.expiryDate ? certificate.expiryDate|date('short') : 'Never'|t('forklift') }}</td>
+                    <td>{{ certificate.statusLabel }}</td>
+                    <td class="thin">
+                        {% if certificate.effectiveStatus == 'pending' %}
+                            <form method="post" accept-charset="UTF-8">
+                                {{ csrfInput() }}
+                                <input type="hidden" name="action" value="forklift/certificates/approve">
+                                <input type="hidden" name="certificateId" value="{{ certificate.id }}">
+                                {{ redirectInput(craft.app.request.pathInfo) }}
+                                <button type="submit" class="btn small submit">{{ 'Approve'|t('forklift') }}</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7" class="light">{{ 'No certificates on file.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

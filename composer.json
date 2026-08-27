@@ -1,0 +1,55 @@
+{
+    "name": "justinholtweb/craft-forklift",
+    "description": "B2B and wholesale for Craft Commerce — company accounts with buyers and roles, spend approvals, contract price lists, request-a-quote with pay-by-link, net terms and credit limits, quick order and CSV upload, and tax exemption certificates.",
+    "version": "5.0.0",
+    "type": "craft-plugin",
+    "keywords": [
+        "craftcms",
+        "craft-plugin",
+        "craft-commerce",
+        "commerce",
+        "b2b",
+        "wholesale",
+        "net-terms",
+        "quotes",
+        "price-list"
+    ],
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Justin Holt",
+            "homepage": "https://justinholt.com"
+        }
+    ],
+    "support": {
+        "email": "justin@justinholt.com"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "craftcms/cms": "^5.3.0",
+        "craftcms/commerce": "^5.3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "justinholtweb\\forklift\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "extra": {
+        "name": "Forklift",
+        "handle": "forklift",
+        "developer": "Justin Holt",
+        "developerUrl": "https://justinholt.com",
+        "documentationUrl": "https://github.com/justinholtweb/craft-forklift/blob/main/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-forklift/main/CHANGELOG.md",
+        "class": "justinholtweb\\forklift\\Plugin"
+    }
+}

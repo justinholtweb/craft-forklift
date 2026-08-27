@@ -1,0 +1,107 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'price-lists' %}
+{% set crumbs = [{ label: 'Price lists'|t('forklift'), url: url('forklift/price-lists') }] %}
+
+{% block content %}
+    <p class="light">
+        {{ 'What a customer pays, and why. This runs the real resolver — the same code the cart runs — so a number here is a promise the checkout will keep.'|t('forklift') }}
+    </p>
+
+    <form method="get" action="{{ url('forklift/price-lists/preview') }}">
+        {{ forms.textField({
+            label: 'SKU'|t('forklift'),
+            name: 'sku',
+            value: sku,
+            class: 'code',
+            autofocus: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Quantity'|t('forklift'),
+            type: 'number',
+            min: 1,
+            size: 6,
+            name: 'qty',
+            value: qty,
+        }) }}
+
+        {{ forms.elementSelectField({
+            label: 'Company'|t('forklift'),
+            instructions: 'Leave empty to see what a member of the public pays.'|t('forklift'),
+            name: 'companyId',
+            elementType: 'justinholtweb\\forklift\\elements\\Company',
+            elements: company ? [company] : [],
+            limit: 1,
+        }) }}
+
+        <button type="submit" class="btn submit">{{ 'Check price'|t('forklift') }}</button>
+    </form>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    {% if result %}
+        <hr>
+        <div class="pane">
+            <h2>{{ purchasable ? purchasable.description : sku }}</h2>
+
+            <table class="data fullwidth">
+                <tbody>
+                    <tr>
+                        <th class="thin">{{ 'They pay'|t('forklift') }}</th>
+                        <td><strong>{{ result.price|number_format(2) }}</strong> {{ 'each'|t('forklift') }}</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'List price'|t('forklift') }}</th>
+                        <td>{{ result.listPrice|number_format(2) }}</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'Saving'|t('forklift') }}</th>
+                        <td>{{ result.saving|number_format(2) }} ({{ result.savingPercent }}%)</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'Because'|t('forklift') }}</th>
+                        <td>{{ result.sourceLabel }}</td>
+                    </tr>
+                    <tr>
+                        <th>{{ 'Line total'|t('forklift') }}</th>
+                        <td>{{ result.subtotal|number_format(2) }} {{ 'for {qty}'|t('forklift', { qty: result.qty }) }}</td>
+                    </tr>
+                    {% if result.nextBreak %}
+                        <tr>
+                            <th>{{ 'Next break'|t('forklift') }}</th>
+                            <td>{{ '{qty}+ at {price}'|t('forklift', { qty: result.nextBreak.qty, price: result.nextBreak.price|number_format(2) }) }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if result.suppressedReason %}
+                        <tr>
+                            <th>{{ 'Note'|t('forklift') }}</th>
+                            <td class="warning">{{ result.suppressedReason }}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if breaks|length > 1 %}
+            <div class="pane">
+                <h2>{{ 'Quantity breaks'|t('forklift') }}</h2>
+                <table class="data fullwidth">
+                    <thead><tr><th>{{ 'Quantity'|t('forklift') }}</th><th>{{ 'Price each'|t('forklift') }}</th><th>{{ 'Because'|t('forklift') }}</th></tr></thead>
+                    <tbody>
+                        {% for rung in breaks %}
+                            <tr>
+                                <td>{{ rung.qty }}+</td>
+                                <td>{{ rung.price|number_format(2) }}</td>
+                                <td class="light">{{ rung.sourceLabel }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}

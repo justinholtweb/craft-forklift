@@ -1,0 +1,183 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'companies' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Companies'|t('forklift'), url: url('forklift/companies') }] %}
+
+{% block actionButton %}
+    <div class="btngroup">
+        <input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+        {% if not isNew %}
+            <div class="btn submit menubtn"></div>
+            <div class="menu">
+                <ul>
+                    <li><a href="{{ url('forklift/companies/' ~ company.id ~ '/members') }}">{{ 'Buyers'|t('forklift') }}</a></li>
+                    <li><a href="{{ url('forklift/companies/' ~ company.id ~ '/certificates') }}">{{ 'Tax certificates'|t('forklift') }}</a></li>
+                    {% if currentUser.can('forklift:viewCredit') %}
+                        <li><a href="{{ url('forklift/companies/' ~ company.id ~ '/credit') }}">{{ 'Credit'|t('forklift') }}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/companies/save">
+    {{ redirectInput('forklift/companies') }}
+    {% if not isNew %}<input type="hidden" name="companyId" value="{{ company.id }}">{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: 'Company name'|t('forklift'),
+        name: 'title',
+        value: company.title,
+        errors: company.getErrors('title'),
+        autofocus: true,
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Account code'|t('forklift'),
+        instructions: 'The number your warehouse writes on a pick note. Left blank, one is generated from the name.'|t('forklift'),
+        name: 'code',
+        class: 'code',
+        value: company.code,
+        errors: company.getErrors('code'),
+    }) }}
+
+    {# The site's own fields on the account. `createForm()` is what Craft uses on its own element
+       screens, and it handles namespacing, tabs and conditional fields — none of which a
+       hand-rolled loop over the layout's tabs gets right. #}
+    {% set fieldLayoutForm = company.fieldLayout ? company.fieldLayout.createForm(company) : null %}
+
+    {% if fieldLayoutForm and fieldLayoutForm.tabs|length %}
+        <hr>
+        {{ fieldLayoutForm.render()|raw }}
+    {% endif %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta">
+        {{ forms.lightswitchField({
+            label: 'Enabled'|t('app'),
+            name: 'enabled',
+            on: company.enabled,
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Account status'|t('forklift'),
+            instructions: 'On hold stops new orders and nothing else — existing orders, quotes and statements are untouched.'|t('forklift'),
+            name: 'accountStatus',
+            options: statusOptions,
+            value: company.accountStatus,
+            errors: company.getErrors('accountStatus'),
+        }) }}
+
+        {{ forms.elementSelectField({
+            label: 'Main contact'|t('forklift'),
+            name: 'ownerId',
+            elementType: 'craft\\elements\\User',
+            elements: company.owner ? [company.owner] : [],
+            limit: 1,
+        }) }}
+    </div>
+
+    <div class="meta">
+        <h2 class="visually-hidden">{{ 'Trading'|t('forklift') }}</h2>
+
+        {{ forms.selectField({
+            label: 'Payment terms'|t('forklift'),
+            name: 'termsId',
+            options: termOptions,
+            value: company.termsId,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Trades on terms'|t('forklift'),
+            instructions: 'Makes the purchase-order gateway available to this account at checkout.'|t('forklift'),
+            name: 'creditEnabled',
+            on: company.creditEnabled,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Credit limit'|t('forklift'),
+            instructions: 'Blank means no limit. Zero means no orders on account.'|t('forklift'),
+            type: 'number',
+            step: '0.01',
+            min: 0,
+            name: 'creditLimit',
+            value: company.creditLimit,
+            errors: company.getErrors('creditLimit'),
+        }) }}
+
+        {{ forms.textField({
+            label: 'Approval needed at or above'|t('forklift'),
+            instructions: 'Blank means no threshold. **Zero means every order needs approval.**'|t('forklift')|md,
+            type: 'number',
+            step: '0.01',
+            min: 0,
+            name: 'approvalThreshold',
+            value: company.approvalThreshold,
+            errors: company.getErrors('approvalThreshold'),
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Requires a PO number'|t('forklift'),
+            name: 'requiresPoNumber',
+            on: company.requiresPoNumber,
+        }) }}
+    </div>
+
+    <div class="meta">
+        {{ forms.textField({ label: 'Phone'|t('forklift'), name: 'phone', value: company.phone }) }}
+        {{ forms.textField({ label: 'Website'|t('forklift'), name: 'website', value: company.website, errors: company.getErrors('website') }) }}
+        {{ forms.textField({ label: 'Tax ID'|t('forklift'), name: 'taxId', value: company.taxId, instructions: 'VAT number, EIN, ABN — whatever your jurisdiction uses.'|t('forklift') }) }}
+    </div>
+
+    {% if priceLists|length and currentUser.can('forklift:managePriceLists') %}
+        <div class="meta">
+            {{ forms.checkboxGroupField({
+                label: 'Price lists'|t('forklift'),
+                instructions: 'Lists marked as applying to every company are not shown here — they already apply.'|t('forklift'),
+                name: 'priceListIds',
+                options: priceLists|filter(l => not l.allCompanies)|map(l => { label: l.name, value: l.id }),
+                values: priceListIds,
+            }) }}
+        </div>
+    {% endif %}
+
+    <div class="meta">
+        {{ forms.textareaField({
+            label: 'Internal notes'|t('forklift'),
+            instructions: 'Never shown to the customer.'|t('forklift'),
+            name: 'notes',
+            value: company.notes,
+            rows: 4,
+        }) }}
+    </div>
+
+    {% if not isNew %}
+        <div class="meta read-only">
+            <div class="data">
+                <div class="heading">{{ 'Buyers'|t('forklift') }}</div>
+                <div class="value"><a href="{{ url('forklift/companies/' ~ company.id ~ '/members') }}">{{ members|length }}</a></div>
+            </div>
+            {% if company.creditEnabled %}
+                <div class="data">
+                    <div class="heading">{{ 'Balance'|t('forklift') }}</div>
+                    <div class="value">{{ company.balance|number_format(2) }}</div>
+                </div>
+                <div class="data">
+                    <div class="heading">{{ 'Credit remaining'|t('forklift') }}</div>
+                    <div class="value">{{ company.creditRemaining is null ? 'No limit'|t('forklift') : company.creditRemaining|number_format(2) }}</div>
+                </div>
+            {% endif %}
+            <div class="data">
+                <div class="heading">{{ 'Tax exempt'|t('forklift') }}</div>
+                <div class="value">{{ company.taxExempt ? 'Yes'|t('app') : 'No'|t('app') }}</div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

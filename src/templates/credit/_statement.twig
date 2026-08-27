@@ -1,0 +1,64 @@
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'credit' %}
+{% set crumbs = [
+    { label: 'Credit'|t('forklift'), url: url('forklift/credit') },
+    { label: company.uiLabel, url: url('forklift/companies/' ~ company.id ~ '/credit') },
+] %}
+
+{% block actionButton %}
+    <a class="btn" href="{{ url('forklift/companies/' ~ company.id ~ '/statement', { format: 'csv' }) }}">{{ 'Download CSV'|t('forklift') }}</a>
+{% endblock %}
+
+{% block content %}
+    <div class="pane">
+        <p class="light">
+            {{ '{from} to {to}'|t('forklift', {
+                from: statement.from|date('long'),
+                to: statement.to|date('long'),
+            }) }}
+        </p>
+
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Date'|t('app') }}</th>
+                    <th>{{ 'Type'|t('forklift') }}</th>
+                    <th>{{ 'Reference'|t('forklift') }}</th>
+                    <th>{{ 'Due'|t('forklift') }}</th>
+                    <th>{{ 'Amount'|t('forklift') }}</th>
+                    <th>{{ 'Balance'|t('forklift') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="light">
+                    <td colspan="5">{{ 'Balance brought forward'|t('forklift') }}</td>
+                    <td>{{ statement.openingBalance|number_format(2) }}</td>
+                </tr>
+                {% set running = statement.openingBalance %}
+                {% for entry in statement.entries %}
+                    {% set running = running + entry.amount %}
+                    <tr>
+                        <td>{{ entry.entryDate ? entry.entryDate|date('short') }}</td>
+                        <td>{{ entry.typeLabel }}</td>
+                        <td>{{ entry.reference }}</td>
+                        <td class="{{ entry.isOverdue ? 'error' }}">{{ entry.dueDate ? entry.dueDate|date('short') : '' }}</td>
+                        <td>{{ entry.amount|number_format(2) }}</td>
+                        <td>{{ running|number_format(2) }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="light">{{ 'Nothing moved in this period.'|t('forklift') }}</td></tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="5"><strong>{{ 'Balance carried forward'|t('forklift') }}</strong></td>
+                    <td><strong>{{ statement.closingBalance|number_format(2) }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pane">
+        <h2>{{ 'Aged'|t('forklift') }}</h2>
+        {% include 'forklift/credit/_aging' %}
+    </div>
+{% endblock %}

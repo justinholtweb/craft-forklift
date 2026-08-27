@@ -1,0 +1,225 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'quotes' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Quotes'|t('forklift'), url: url('forklift/quotes') }] %}
+
+{% block actionButton %}
+    <div class="btngroup">
+        <input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+        {% if canEdit %}
+            {# `formaction` rather than inline script or a second form. Craft resolves an
+               /actions/… path *before* it looks at the `action` body param, so this reliably
+               overrides the hidden input — and a nested <form> here would be inside Craft's own
+               page form, where the parser drops the tag but keeps the children and Save starts
+               running whichever action ended up last. #}
+            <button type="submit" class="btn submit" formaction="{{ actionUrl('forklift/quotes/send') }}">
+                {{ 'Save and send'|t('forklift') }}
+            </button>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/quotes/save">
+    {{ redirectInput('forklift/quotes') }}
+    {% if not isNew %}<input type="hidden" name="quoteId" value="{{ quote.id }}">{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: 'Subject'|t('forklift'),
+        instructions: 'What this quotation is for. Left blank, the quote number is used.'|t('forklift'),
+        name: 'title',
+        value: quote.title,
+        errors: quote.getErrors('title'),
+    }) }}
+
+    {% if quote.message %}
+        <div class="pane">
+            <h2>{{ 'What they asked for'|t('forklift') }}</h2>
+            <p>{{ quote.message|nl2br }}</p>
+        </div>
+    {% endif %}
+
+    <h2>{{ 'Lines'|t('forklift') }}</h2>
+    <p class="light">
+        {{ 'Set a quantity to 0 to remove a line. Every line shows what this customer would pay without the quote, so you are discounting against something rather than into a void.'|t('forklift') }}
+    </p>
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th>{{ 'SKU'|t('forklift') }}</th>
+                <th>{{ 'Description'|t('app') }}</th>
+                <th>{{ 'Qty'|t('forklift') }}</th>
+                <th>{{ 'They would pay'|t('forklift') }}</th>
+                <th>{{ 'Quoted each'|t('forklift') }}</th>
+                <th>{{ 'Line total'|t('forklift') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i, line in lines %}
+                <tr>
+                    <td>
+                        <input type="hidden" name="lines[{{ i }}][id]" value="{{ line.id }}">
+                        <input type="hidden" name="lines[{{ i }}][purchasableId]" value="{{ line.purchasableId }}">
+                        <input class="text code" type="text" name="lines[{{ i }}][sku]" value="{{ line.sku }}" size="16" {{ not canEdit ? 'disabled' }}>
+                    </td>
+                    <td><input class="text fullwidth" type="text" name="lines[{{ i }}][description]" value="{{ line.description }}" {{ not canEdit ? 'disabled' }}></td>
+                    <td><input class="text" type="number" min="0" name="lines[{{ i }}][qty]" value="{{ line.qty }}" size="4" {{ not canEdit ? 'disabled' }}></td>
+                    <td>
+                        <input type="hidden" name="lines[{{ i }}][listPrice]" value="{{ line.listPrice }}">
+                        <span class="light">{{ line.listPrice is null ? '—' : line.listPrice|number_format(2) }}</span>
+                    </td>
+                    <td><input class="text" type="number" step="0.01" min="0" name="lines[{{ i }}][price]" value="{{ line.price }}" size="8" {{ not canEdit ? 'disabled' }}></td>
+                    <td>{{ line.subtotal|number_format(2) }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="light">{{ 'No lines on this quote.'|t('forklift') }}</td></tr>
+            {% endfor %}
+
+            {% if canEdit %}
+                {# Three blank rows, so adding a line needs no JavaScript at all. #}
+                {% for j in 0..2 %}
+                    {% set i = lines|length + j %}
+                    <tr>
+                        <td><input class="text code" type="text" name="lines[{{ i }}][sku]" size="16" placeholder="{{ 'SKU'|t('forklift') }}"></td>
+                        <td><input class="text fullwidth" type="text" name="lines[{{ i }}][description]"></td>
+                        <td><input class="text" type="number" min="0" name="lines[{{ i }}][qty]" value="0" size="4"></td>
+                        <td class="light">—</td>
+                        <td><input class="text" type="number" step="0.01" min="0" name="lines[{{ i }}][price]" size="8"></td>
+                        <td></td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    {{ forms.textField({
+        label: 'Delivery'|t('forklift'),
+        instructions: 'Charged on top of the lines. Tax is worked out by Commerce at checkout, against the address the customer actually enters.'|t('forklift'),
+        type: 'number',
+        step: '0.01',
+        min: 0,
+        name: 'shippingCost',
+        value: quote.shippingCost,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Discount off the whole quote'|t('forklift'),
+        type: 'number',
+        step: '0.01',
+        min: 0,
+        name: 'discount',
+        value: quote.discount,
+        errors: quote.getErrors('discount'),
+    }) }}
+
+    {% set fieldLayoutForm = quote.fieldLayout ? quote.fieldLayout.createForm(quote) : null %}
+
+    {% if fieldLayoutForm and fieldLayoutForm.tabs|length %}
+        <hr>
+        {{ fieldLayoutForm.render()|raw }}
+    {% endif %}
+
+    <div class="pane">
+        <table class="data fullwidth">
+            <tbody>
+                <tr><th class="thin">{{ 'Goods'|t('forklift') }}</th><td>{{ quote.itemSubtotal|number_format(2) }}</td></tr>
+                <tr><th>{{ 'They would have paid'|t('forklift') }}</th><td class="light">{{ quote.listSubtotal|number_format(2) }}</td></tr>
+                <tr><th>{{ 'Quote total'|t('forklift') }}</th><td><strong>{{ quote.total|number_format(2) }}</strong></td></tr>
+                <tr><th>{{ 'They save'|t('forklift') }}</th><td>{{ quote.totalSaving|number_format(2) }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block details %}
+    <div class="meta read-only">
+        <div class="data">
+            <div class="heading">{{ 'Quote'|t('forklift') }}</div>
+            <div class="value"><code>{{ quote.number }}</code></div>
+        </div>
+        <div class="data">
+            <div class="heading">{{ 'Status'|t('app') }}</div>
+            <div class="value">{{ quote.effectiveStatus }}</div>
+        </div>
+        {% if quote.sentDate %}
+            <div class="data">
+                <div class="heading">{{ 'Sent'|t('forklift') }}</div>
+                <div class="value">{{ quote.sentDate|datetime('short') }}</div>
+            </div>
+        {% endif %}
+        {% if quote.order %}
+            <div class="data">
+                <div class="heading">{{ 'Order'|t('forklift') }}</div>
+                <div class="value"><a href="{{ quote.order.cpEditUrl }}">{{ quote.order.reference }}</a></div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="meta">
+        {{ forms.elementSelectField({
+            label: 'Company'|t('forklift'),
+            name: 'companyId',
+            elementType: 'justinholtweb\\forklift\\elements\\Company',
+            elements: quote.company ? [quote.company] : [],
+            limit: 1,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Email'|t('forklift'),
+            instructions: 'Where the quote is sent.'|t('forklift'),
+            type: 'email',
+            name: 'email',
+            value: quote.email,
+            errors: quote.getErrors('email'),
+        }) }}
+
+        {{ forms.textField({
+            label: 'Their reference'|t('forklift'),
+            instructions: 'The RFQ number they will quote back at you.'|t('forklift'),
+            name: 'reference',
+            value: quote.reference,
+        }) }}
+
+        {{ forms.dateField({
+            label: 'Valid until'|t('forklift'),
+            instructions: 'Left blank, the store default is used when you send it.'|t('forklift'),
+            name: 'expiryDate',
+            value: quote.expiryDate,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Email it when sending'|t('forklift'),
+            instructions: 'Off marks it sent and gives you the link to send yourself.'|t('forklift'),
+            name: 'notify',
+            on: true,
+        }) }}
+    </div>
+
+    {% if paymentUrl %}
+        <div class="meta">
+            {{ forms.textField({
+                label: 'Pay-by-link'|t('forklift'),
+                instructions: 'Loads the quoted basket into the customer’s session. The link expires; the prices do not change if they recalculate it.'|t('forklift'),
+                readonly: true,
+                value: paymentUrl,
+                class: 'code',
+            }) }}
+        </div>
+    {% endif %}
+
+    <div class="meta">
+        {{ forms.textareaField({
+            label: 'Internal note'|t('forklift'),
+            instructions: 'Never shown to the customer.'|t('forklift'),
+            name: 'internalNote',
+            value: quote.internalNote,
+            rows: 4,
+        }) }}
+    </div>
+{% endblock %}

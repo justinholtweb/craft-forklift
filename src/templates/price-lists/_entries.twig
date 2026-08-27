@@ -1,0 +1,109 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'price-lists' %}
+{% set crumbs = [
+    { label: 'Price lists'|t('forklift'), url: url('forklift/price-lists') },
+    { label: priceList.name, url: url('forklift/price-lists/' ~ priceList.id) },
+] %}
+
+{% block content %}
+    <p class="light">
+        {{ 'Targets run from most specific to least: a variant, then a product, then a product type, then everything. The most specific match wins, and within it the highest quantity break at or below the quantity being bought.'|t('forklift') }}
+    </p>
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th>{{ 'Applies to'|t('forklift') }}</th>
+                <th>{{ 'From qty'|t('forklift') }}</th>
+                <th>{{ 'Price'|t('forklift') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+                <tr>
+                    <td>
+                        {{ entry.targetLabel }}
+                        {% if entry.targetType == 'purchasable' and not entry.targetId %}
+                            <span class="error">{{ '(unmatched SKU)'|t('forklift') }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ entry.minQty }}</td>
+                    <td>{{ entry.priceLabel }}</td>
+                    <td class="thin">
+                        <form method="post" accept-charset="UTF-8">
+                            {{ csrfInput() }}
+                            <input type="hidden" name="action" value="forklift/price-lists/delete-entry">
+                            <input type="hidden" name="entryId" value="{{ entry.id }}">
+                            {{ redirectInput('forklift/price-lists/' ~ priceList.id ~ '/entries') }}
+                            <button type="submit" class="btn small">{{ 'Delete'|t('app') }}</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4" class="light">{{ 'No prices yet. Add one below, or import a spreadsheet.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        <input type="hidden" name="action" value="forklift/price-lists/save-entry">
+        <input type="hidden" name="priceListId" value="{{ priceList.id }}">
+        {{ redirectInput('forklift/price-lists/' ~ priceList.id ~ '/entries') }}
+
+        <h2>{{ 'Add a price'|t('forklift') }}</h2>
+
+        {{ forms.selectField({
+            label: 'Applies to'|t('forklift'),
+            name: 'targetType',
+            options: targetOptions,
+            value: 'purchasable',
+        }) }}
+
+        {{ forms.textField({
+            label: 'SKU'|t('forklift'),
+            instructions: 'For a single variant. Matched to a product when you save.'|t('forklift'),
+            name: 'sku',
+            class: 'code',
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Product type'|t('forklift'),
+            instructions: 'Only used when the target above is a product type.'|t('forklift'),
+            name: 'targetId',
+            options: [{ label: '—', value: '' }]|merge(productTypes),
+        }) }}
+
+        {{ forms.textField({
+            label: 'From quantity'|t('forklift'),
+            instructions: 'Several rows on the same product with different quantities make a break table.'|t('forklift'),
+            type: 'number',
+            min: 1,
+            size: 5,
+            name: 'minQty',
+            value: 1,
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Price'|t('forklift'),
+            name: 'priceType',
+            options: priceTypeOptions,
+            value: 'fixed',
+        }) }}
+
+        {{ forms.textField({
+            label: 'Amount'|t('forklift'),
+            type: 'number',
+            step: '0.0001',
+            min: 0,
+            name: 'amount',
+        }) }}
+
+        <button type="submit" class="btn submit">{{ 'Add price'|t('forklift') }}</button>
+    </form>
+{% endblock %}

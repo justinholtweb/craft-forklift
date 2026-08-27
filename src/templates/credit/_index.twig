@@ -1,0 +1,50 @@
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'credit' %}
+{% set title = 'Credit'|t('forklift') %}
+
+{% block content %}
+    {% if overLimit|length %}
+        <div class="pane" style="border-left: 3px solid var(--error-color);">
+            <h2>{{ 'Over their limit'|t('forklift') }}</h2>
+            <table class="data fullwidth">
+                <thead><tr><th>{{ 'Company'|t('forklift') }}</th><th>{{ 'Balance'|t('forklift') }}</th><th>{{ 'Limit'|t('forklift') }}</th><th>{{ 'Over by'|t('forklift') }}</th><th></th></tr></thead>
+                <tbody>
+                    {% for row in overLimit %}
+                        <tr>
+                            <td><a href="{{ url('forklift/companies/' ~ row.company.id ~ '/credit') }}">{{ row.company.uiLabel }}</a></td>
+                            <td>{{ row.balance|number_format(2) }}</td>
+                            <td>{{ row.creditLimit|number_format(2) }}</td>
+                            <td class="error">{{ (row.balance - row.creditLimit)|number_format(2) }}</td>
+                            <td class="thin"><a class="btn small" href="{{ url('forklift/companies/' ~ row.company.id ~ '/statement') }}">{{ 'Statement'|t('forklift') }}</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <div class="pane">
+        <h2>{{ 'Accounts trading on terms'|t('forklift') }}</h2>
+        <table class="data fullwidth">
+            <thead><tr><th>{{ 'Company'|t('forklift') }}</th><th>{{ 'Terms'|t('forklift') }}</th><th>{{ 'Limit'|t('forklift') }}</th><th>{{ 'Balance'|t('forklift') }}</th><th>{{ 'Available'|t('forklift') }}</th><th></th></tr></thead>
+            <tbody>
+                {% for company in onTerms %}
+                    <tr>
+                        <td>
+                            <span class="status {{ company.accountStatus == 'active' ? 'green' : (company.accountStatus == 'hold' ? 'orange' : 'red') }}"></span>
+                            <a href="{{ url('forklift/companies/' ~ company.id ~ '/credit') }}">{{ company.uiLabel }}</a>
+                        </td>
+                        <td>{{ company.terms ? company.terms.shorthand : '' }}</td>
+                        <td>{{ company.creditLimit is null ? 'No limit'|t('forklift') : company.creditLimit|number_format(2) }}</td>
+                        <td>{{ company.balance|number_format(2) }}</td>
+                        <td>{{ company.creditRemaining is null ? '—' : company.creditRemaining|number_format(2) }}</td>
+                        <td class="thin"><a class="btn small" href="{{ url('forklift/companies/' ~ company.id ~ '/statement') }}">{{ 'Statement'|t('forklift') }}</a></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="light">{{ 'No accounts are set up to pay on terms yet.'|t('forklift') }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

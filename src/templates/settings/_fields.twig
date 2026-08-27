@@ -1,0 +1,18 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Forklift'|t('forklift'), url: url('forklift/settings') }] %}
+
+{% block sidebar %}{% include 'forklift/settings/_nav' %}{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="{{ saveAction }}">
+    <input type="hidden" name="layoutFor" value="{{ layoutFor }}">
+    {{ redirectInput('forklift/settings/' ~ selectedTab) }}
+
+    <p class="light">{{ instructions }}</p>
+
+    {{ forms.fieldLayoutDesignerField({ fieldLayout: fieldLayout }) }}
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'forklift/_portal/_layout' %}
+
+{% block body %}
+    <h1>{{ 'Orders'|t('forklift') }}</h1>
+    <p class="muted">
+        {{ 'Everything this account has ordered, not only your own. Reordering re-prices at today’s rates rather than copying the old numbers — a contract that has been renegotiated should not be quietly ignored.'|t('forklift') }}
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>{{ 'Order'|t('forklift') }}</th>
+                <th>{{ 'Date'|t('app') }}</th>
+                <th>{{ 'PO number'|t('forklift') }}</th>
+                <th class="num">{{ 'Total'|t('forklift') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td>{{ order.reference ?: order.shortNumber }}</td>
+                    <td>{{ order.dateOrdered ? order.dateOrdered|date('short') }}</td>
+                    <td>{{ craft.forklift.poNumber(order) }}</td>
+                    <td class="num">{{ order.totalPrice|number_format(2) }}</td>
+                    <td>
+                        <form method="post" accept-charset="UTF-8">
+                            {{ csrfInput() }}
+                            <input type="hidden" name="action" value="forklift/quick-order/reorder">
+                            <input type="hidden" name="orderId" value="{{ order.id }}">
+                            <input type="hidden" name="preview" value="1">
+                            <button type="submit">{{ 'Reorder'|t('forklift') }}</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="muted">{{ 'No orders yet.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

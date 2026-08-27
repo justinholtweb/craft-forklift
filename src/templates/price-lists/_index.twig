@@ -1,0 +1,61 @@
+{% extends '_layouts/cp' %}
+
+{% set selectedSubnavItem = 'price-lists' %}
+{% set title = 'Price lists'|t('forklift') %}
+
+{% block actionButton %}
+    <a href="{{ url('forklift/price-lists/new') }}" class="btn submit add icon">{{ 'New price list'|t('forklift') }}</a>
+{% endblock %}
+
+{% block content %}
+    {% if suppressed %}
+        <div class="pane" style="border-left: 3px solid var(--warning-color);">
+            <p>{{ 'These lists are not being applied — buyers are paying list price. Contract pricing needs Forklift Pro.'|t('forklift') }}</p>
+        </div>
+    {% endif %}
+
+    <p class="light">
+        {{ 'A price list is a document, not a rule: a sheet of negotiated prices belonging to named customers, with quantity breaks, that somebody imported from a spreadsheet. Where two lists both price a product, the higher **priority** wins — but only for the lines it actually mentions, so a customer contract at priority 10 does not stop a trade-wide list at 0 pricing everything else.'|t('forklift')|md }}
+    </p>
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th>{{ 'Name'|t('app') }}</th>
+                <th>{{ 'Applies to'|t('forklift') }}</th>
+                <th>{{ 'Priority'|t('forklift') }}</th>
+                <th>{{ 'Prices'|t('forklift') }}</th>
+                <th>{{ 'Active'|t('forklift') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for list in priceLists %}
+                <tr>
+                    <td><a href="{{ url('forklift/price-lists/' ~ list.id) }}">{{ list.name }}</a></td>
+                    <td>
+                        {% if list.allCompanies %}
+                            {{ 'Every company'|t('forklift') }}
+                        {% else %}
+                            {{ '{count} companies'|t('forklift', { count: list.companyIds|length }) }}
+                        {% endif %}
+                    </td>
+                    <td>{{ list.priority }}</td>
+                    <td><a href="{{ url('forklift/price-lists/' ~ list.id ~ '/entries') }}">{{ counts[list.id] ?? 0 }}</a></td>
+                    <td>
+                        {% if list.isActive %}
+                            <span class="status green"></span>{{ 'Yes'|t('app') }}
+                        {% else %}
+                            <span class="status"></span>{{ list.enabled ? 'Out of date range'|t('forklift') : 'Disabled'|t('app') }}
+                        {% endif %}
+                    </td>
+                    <td class="thin"><a class="btn small" href="{{ url('forklift/price-lists/' ~ list.id ~ '/import') }}">{{ 'Import'|t('forklift') }}</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="light">{{ 'No price lists yet.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p><a class="btn" href="{{ url('forklift/price-lists/preview') }}">{{ 'Price preview'|t('forklift') }}</a></p>
+{% endblock %}

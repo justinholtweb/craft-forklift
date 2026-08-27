@@ -1,0 +1,108 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'certificates' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Tax certificates'|t('forklift'), url: url('forklift/certificates') }] %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/certificates/save">
+    {{ redirectInput('forklift/certificates') }}
+    {% if not isNew %}<input type="hidden" name="certificateId" value="{{ certificate.id }}">{% endif %}
+
+    {{ forms.elementSelectField({
+        label: 'Company'|t('forklift'),
+        name: 'companyId',
+        elementType: 'justinholtweb\\forklift\\elements\\Company',
+        elements: company ? [company] : [],
+        limit: 1,
+        required: true,
+        errors: certificate.getErrors('companyId'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'Name'|t('app'),
+        instructions: 'What this document is — “Texas resale certificate”, “Charity exemption”.'|t('forklift'),
+        name: 'name',
+        value: certificate.name,
+        errors: certificate.getErrors('name'),
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Certificate number'|t('forklift'),
+        name: 'certificateNumber',
+        class: 'code',
+        value: certificate.certificateNumber,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Where it is good'|t('forklift') }}</h2>
+    <p class="light">{{ 'Leave the country blank for a certificate that applies everywhere. A country with no state covers the whole country.'|t('forklift') }}</p>
+
+    {{ forms.textField({
+        label: 'Country code'|t('forklift'),
+        name: 'countryCode',
+        class: 'code',
+        size: 6,
+        value: certificate.countryCode,
+        placeholder: 'US',
+    }) }}
+
+    {{ forms.textField({
+        label: 'State or region'|t('forklift'),
+        name: 'administrativeArea',
+        class: 'code',
+        size: 10,
+        value: certificate.administrativeArea,
+        placeholder: 'TX',
+    }) }}
+
+    <hr>
+
+    {{ forms.dateField({ label: 'Issued'|t('forklift'), name: 'issueDate', value: certificate.issueDate }) }}
+    {{ forms.dateField({
+        label: 'Expires'|t('forklift'),
+        instructions: 'Leave blank if it does not expire. An expired certificate exempts nothing, from the moment it expires.'|t('forklift'),
+        name: 'expiryDate',
+        value: certificate.expiryDate,
+        errors: certificate.getErrors('expiryDate'),
+    }) }}
+
+    {{ forms.elementSelectField({
+        label: 'Scanned document'|t('forklift'),
+        name: 'assetId',
+        elementType: 'craft\\elements\\Asset',
+        elements: certificate.asset ? [certificate.asset] : [],
+        limit: 1,
+    }) }}
+
+    {{ forms.textareaField({ label: 'Note'|t('forklift'), name: 'note', value: certificate.note, rows: 3 }) }}
+{% endblock %}
+
+{% block details %}
+    {% if not isNew %}
+        <div class="meta read-only">
+            <div class="data">
+                <div class="heading">{{ 'Status'|t('app') }}</div>
+                <div class="value">{{ certificate.statusLabel }}</div>
+            </div>
+        </div>
+
+        <div class="meta">
+            <p class="light">{{ 'Approving is a deliberate act — it is the moment somebody takes responsibility for this document.'|t('forklift') }}</p>
+
+            {# Buttons on this form, not a second one: a nested <form> inside Craft's full-page
+               form silently posts the outer one. #}
+            <div class="field">
+                {% if certificate.effectiveStatus != 'approved' and not certificate.isExpired %}
+                    <button type="submit" name="decision" value="approve" class="btn submit">{{ 'Save and approve'|t('forklift') }}</button>
+                {% endif %}
+                {% if certificate.effectiveStatus != 'rejected' %}
+                    <button type="submit" name="decision" value="reject" class="btn">{{ 'Save and reject'|t('forklift') }}</button>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

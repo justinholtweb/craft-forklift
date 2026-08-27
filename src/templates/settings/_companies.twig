@@ -1,0 +1,84 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set fullPageForm = true %}
+{% set crumbs = [{ label: 'Forklift'|t('forklift'), url: url('forklift/settings') }] %}
+
+{% block sidebar %}{% include 'forklift/settings/_nav' %}{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="forklift/settings/save">
+    {{ redirectInput('forklift/settings/companies') }}
+
+    <h2>{{ 'Assigning accounts'|t('forklift') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: 'Put a buyer’s orders on their company automatically'|t('forklift'),
+        instructions: 'On, a signed-in buyer’s cart is attached to their account from the first line item — which it has to be, because the price of that line item depends on it. Off, orders are assigned by hand in the control panel.'|t('forklift'),
+        name: 'settings[autoAssignCompany]',
+        on: settings.autoAssignCompany,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Let a buyer switch between their accounts'|t('forklift'),
+        instructions: 'Only affects people who belong to more than one company. When somebody belongs to several and none is marked as their default, Forklift will not guess — pricing a cart at the wrong account’s rates is worse than asking.'|t('forklift'),
+        name: 'settings[allowCompanySwitching]',
+        on: settings.allowCompanySwitching,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Let company administrators manage their own buyers'|t('forklift'),
+        instructions: 'Adds and removes buyers from the front-end portal. Only for people already registered on your site — Forklift never creates user accounts from a public form.'|t('forklift'),
+        name: 'settings[allowSelfServiceMembers]',
+        on: settings.allowSelfServiceMembers,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Contract pricing'|t('forklift') }}</h2>
+
+    {% if not isPro %}
+        <p class="light">{{ 'Price lists need Forklift Pro. Everything below is recorded but not applied.'|t('forklift') }}</p>
+    {% endif %}
+
+    {{ forms.lightswitchField({
+        label: 'Allow a contract price above the list price'|t('forklift'),
+        instructions: 'Off by default, and the default matters: a price list imported with two columns swapped otherwise charges a trade customer more than the public pays, silently, on every line.'|t('forklift'),
+        name: 'settings[allowContractPriceAboveList]',
+        on: settings.allowContractPriceAboveList,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Let a promotion beat a contract price'|t('forklift'),
+        instructions: 'On by default. A customer on a negotiated rate who is shown a public sale at a better number and then charged their contract rate has, as far as they are concerned, been overcharged.'|t('forklift'),
+        name: 'settings[promotionsBeatContractPrices]',
+        on: settings.promotionsBeatContractPrices,
+    }) }}
+
+    <hr>
+
+    <h2>{{ 'Approvals'|t('forklift') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: 'Email the approvers'|t('forklift'),
+        name: 'settings[notifyApprovers]',
+        on: settings.notifyApprovers,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: 'Email the buyer when their order is decided'|t('forklift'),
+        name: 'settings[notifyRequester]',
+        on: settings.notifyRequester,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Days before an approval request lapses'|t('forklift'),
+        instructions: 'Zero means never. A lapsed request is **not** an approval — it releases the basket back to the buyer with the reason attached.'|t('forklift')|md,
+        type: 'number',
+        min: 0,
+        size: 5,
+        name: 'settings[approvalExpiryDays]',
+        value: settings.approvalExpiryDays,
+    }) }}
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set selectedSubnavItem = 'companies' %}
+{% set crumbs = [
+    { label: 'Companies'|t('forklift'), url: url('forklift/companies') },
+    { label: company.uiLabel, url: company.cpEditUrl },
+] %}
+
+{% block content %}
+    <p class="light">
+        {{ 'A spend limit is a property of the person, not the role — “Rita can spend 20,000 and Sam can spend 500” needs no new role. Blank means no limit of their own; **zero** means they cannot place an order unassisted.'|t('forklift')|md }}
+    </p>
+
+    <table class="data fullwidth" id="forklift-members">
+        <thead>
+            <tr>
+                <th>{{ 'Buyer'|t('forklift') }}</th>
+                <th>{{ 'Role'|t('forklift') }}</th>
+                <th>{{ 'Spend limit'|t('forklift') }}</th>
+                <th>{{ 'Always needs approval'|t('forklift') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+                <tr>
+                    <td>
+                        {{ member.name }}
+                        <span class="light">{{ member.email }}</span>
+                    </td>
+                    <td>{{ member.roleLabel }}</td>
+                    <td>{{ member.spendLimit is null ? 'No limit'|t('forklift') : member.spendLimit|number_format(2) }}</td>
+                    <td>{{ member.requiresApproval ? 'Yes'|t('app') : '' }}</td>
+                    <td class="thin">
+                        <form method="post" accept-charset="UTF-8">
+                            {{ csrfInput() }}
+                            <input type="hidden" name="action" value="forklift/members/delete">
+                            <input type="hidden" name="memberId" value="{{ member.id }}">
+                            <button type="submit" class="btn small">{{ 'Remove'|t('forklift') }}</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="light">{{ 'Nobody buys for this account yet.'|t('forklift') }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    {# A separate form, never nested inside the table's — a nested form silently posts the wrong one. #}
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        <input type="hidden" name="action" value="forklift/members/save">
+        <input type="hidden" name="companyId" value="{{ company.id }}">
+        {{ redirectInput('forklift/companies/' ~ company.id ~ '/members') }}
+
+        <h2>{{ 'Add a buyer'|t('forklift') }}</h2>
+        <p class="light">{{ 'They need an account on your site already — Forklift never creates users.'|t('forklift') }}</p>
+
+        {{ forms.textField({
+            label: 'Email address'|t('forklift'),
+            name: 'email',
+            type: 'email',
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Role'|t('forklift'),
+            name: 'role',
+            options: roleOptions,
+            value: 'buyer',
+        }) }}
+
+        {{ forms.textField({
+            label: 'Spend limit'|t('forklift'),
+            type: 'number',
+            step: '0.01',
+            min: 0,
+            name: 'spendLimit',
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Every order needs approval'|t('forklift'),
+            name: 'requiresApproval',
+        }) }}
+
+        <button type="submit" class="btn submit">{{ 'Add buyer'|t('forklift') }}</button>
+    </form>
+{% endblock %}
