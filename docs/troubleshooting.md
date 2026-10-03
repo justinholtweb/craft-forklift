@@ -1,4 +1,9 @@
-# Troubleshooting Forklift
+---
+title: Troubleshooting
+slug: troubleshooting
+order: 50
+summary: Wrong prices, blocked checkouts, credit, quotes and tax, and what doctor tells you.
+---
 
 Start here:
 

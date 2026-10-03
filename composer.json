@@ -15,6 +15,7 @@
         "price-list"
     ],
     "license": "proprietary",
+    "homepage": "https://justinholt.com/plugins/craft-forklift",
     "authors": [
         {
             "name": "Justin Holt",
@@ -48,7 +49,7 @@
         "handle": "forklift",
         "developer": "Justin Holt",
         "developerUrl": "https://justinholt.com",
-        "documentationUrl": "https://github.com/justinholtweb/craft-forklift/blob/main/README.md",
+        "documentationUrl": "https://justinholt.com/plugins/craft-forklift/docs",
         "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-forklift/main/CHANGELOG.md",
         "class": "justinholtweb\\forklift\\Plugin"
     }

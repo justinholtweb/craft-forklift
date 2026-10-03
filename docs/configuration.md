@@ -1,4 +1,9 @@
-# Configuring Forklift
+---
+title: Configuration
+slug: configuration
+order: 20
+summary: General settings, companies and buyers, quotes, credit and terms, and per-company overrides.
+---
 
 Settings live under **Forklift → Settings**, split across several screens rather than one long
 pane. Nothing in Forklift's settings is marked `required`, so a fresh install can always save.

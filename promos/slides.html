@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<!-- handmade: hand-tuned deck -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Forklift — Plugin Store promos</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --charcoal: #0f0f1a;
+    --charcoal-light: #1a1a2e;
+    --charcoal-lighter: #252540;
+    --accent: #7FA016;
+    --accent-light: #AECD2A;
+    --gold: #ffd166;
+    --red: #f2707a;
+    --off-white: #f0f0f5;
+  }
+
+  html { background: #000; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--off-white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- slide shell ---------------------------------------------------- */
+  .slide {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 85% 15%, rgba(127, 160, 22, 0.22) 0%, transparent 40%),
+      radial-gradient(ellipse at 65% 5%,  rgba(174, 205, 42, 0.12) 0%, transparent 35%),
+      radial-gradient(ellipse at 15% 85%, rgba(255, 209, 102, 0.07) 0%, transparent 40%),
+      radial-gradient(ellipse at 35% 95%, rgba(127, 160, 22, 0.09) 0%, transparent 35%),
+      linear-gradient(135deg, #0f0f1a 0%, #15180f 30%, #181c10 60%, #0f0f1a 100%);
+  }
+
+  /* Oversized watermark, echoing the app icon */
+  .slide::after {
+    content: '';
+    position: absolute;
+    top: -18%;
+    left: -12%;
+    width: 1180px;
+    height: 1180px;
+    background: url('assets/watermark.svg') no-repeat center / contain;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+
+  /* Hairline along the top edge: hazard stripe, in the accent and gold */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light), var(--gold), var(--accent));
+    z-index: 5;
+  }
+
+  .inner {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: 118px 130px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ---- type ------------------------------------------------------------ */
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(240, 240, 245, 0.62);
+    margin-bottom: 34px;
+  }
+  .eyebrow .rule {
+    width: 58px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent-light);
+  }
+
+  h1, h2 {
+    font-family: 'Jersey 20', sans-serif;
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: 0.005em;
+  }
+
+  .gradient-text {
+    background: linear-gradient(100deg, #7FA016 0%, #AECD2A 38%, #ffd166 68%, #7FA016 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .lede {
+    font-size: 34px;
+    line-height: 1.5;
+    color: rgba(240, 240, 245, 0.72);
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
+  /* ---- cover slide ----------------------------------------------------- */
+  .cover .inner { gap: 90px; }
+  .cover .copy { flex: 1 1 auto; }
+  .cover h1 { font-size: 210px; margin-bottom: 26px; }
+  .cover .tagline {
+    font-family: 'Jersey 20', sans-serif;
+    font-size: 60px;
+    line-height: 1.02;
+    color: var(--off-white);
+    margin-bottom: 40px;
+    max-width: 22ch;
+  }
+  .cover .lede { max-width: 32ch; font-size: 30px; }
+
+  .cover .mark {
+    flex: 0 0 auto;
+    width: 460px;
+    height: 460px;
+    filter: drop-shadow(14px 14px 0 rgba(0, 0, 0, 0.35));
+  }
+  .cover .mark img { width: 100%; height: 100%; display: block; }
+
+  .badges { display: flex; gap: 16px; margin-top: 52px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 26px;
+    font-size: 22px;
+    font-weight: 500;
+    color: rgba(240, 240, 245, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+  }
+  .badge .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent-light);
+  }
+
+  /* ---- feature slides -------------------------------------------------- */
+  .feature .copy { width: 700px; flex: 0 0 700px; }
+  .feature h2 { font-size: 104px; margin-bottom: 30px; }
+  .feature .lede { font-size: 31px; max-width: 24ch; }
+
+  .points {
+    list-style: none;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 24px;
+    line-height: 1.4;
+    color: rgba(240, 240, 245, 0.6);
+  }
+  .points li .tick {
+    flex: 0 0 auto;
+    margin-top: 9px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent-light);
+  }
+
+  /* Right-hand panel */
+  .panel {
+    position: absolute;
+    top: 50%;
+    left: 870px;
+    right: 110px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .note {
+    font-size: 22px;
+    line-height: 1.5;
+    color: rgba(240, 240, 245, 0.45);
+    text-align: center;
+  }
+
+  /* ---- generic sheet --------------------------------------------------- */
+  .sheet {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+  }
+  .sheet .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 32px;
+    background: rgba(127, 160, 22, 0.20);
+    font-size: 22px;
+    font-weight: 600;
+    color: rgba(240, 240, 245, 0.85);
+  }
+  .sheet .title small { font-weight: 500; font-size: 19px; color: rgba(240, 240, 245, 0.5); }
+  .sheet .head, .sheet .row {
+    display: flex;
+    align-items: center;
+    padding: 20px 32px;
+  }
+  .sheet .head {
+    background: rgba(37, 37, 64, 0.8);
+    font-size: 17px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(240, 240, 245, 0.5);
+  }
+  .sheet .row {
+    background: rgba(37, 37, 64, 0.55);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 24px;
+    color: var(--off-white);
+  }
+  .sheet .dim { color: rgba(240, 240, 245, 0.42); }
+  .sheet .num { text-align: right; }
+
+  .pill {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .pill.contract { background: rgba(174, 205, 42, 0.18); color: var(--accent-light); }
+  .pill.trade    { background: rgba(255, 209, 102, 0.14); color: var(--gold); }
+  .pill.list     { background: rgba(255, 255, 255, 0.07); color: rgba(240, 240, 245, 0.6); }
+  .pill.block    { background: rgba(242, 112, 122, 0.16); color: var(--red); }
+  .pill.ok       { background: rgba(174, 205, 42, 0.18); color: var(--accent-light); }
+  .pill.soft     { background: rgba(255, 209, 102, 0.14); color: var(--gold); }
+
+  /* ---- slide 2: price lists -------------------------------------------- */
+  .lists { display: flex; gap: 18px; }
+  .list-card {
+    flex: 1 1 0;
+    padding: 22px 26px;
+    border-radius: 14px;
+    background: rgba(37, 37, 64, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .list-card b { display: block; font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+  .list-card span { font-size: 19px; color: rgba(240, 240, 245, 0.5); }
+  .list-card.contract { border-color: rgba(174, 205, 42, 0.45); }
+  .list-card.trade { border-color: rgba(255, 209, 102, 0.35); }
+
+  .prices .c1 { flex: 0 0 170px; }
+  .prices .c2 { flex: 0 0 90px; }
+  .prices .c3 { flex: 0 0 120px; }
+  .prices .c4 { flex: 0 0 130px; }
+  .prices .c5 { flex: 1 1 auto; text-align: right; }
+
+  /* ---- slide 3: verdict ------------------------------------------------- */
+  .reason {
+    display: flex;
+    align-items: flex-start;
+    gap: 22px;
+    padding: 24px 30px;
+    border-radius: 14px;
+    background: rgba(37, 37, 64, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .reason .code { font-size: 22px; color: var(--accent-light); margin-bottom: 6px; display: block; }
+  .reason .msg { font-size: 22px; line-height: 1.4; color: rgba(240, 240, 245, 0.72); display: block; }
+  .reason .grow { flex: 1 1 auto; }
+  .reason .pill { margin-top: 2px; }
+  .reason.blocking { border-color: rgba(242, 112, 122, 0.35); }
+
+  .readers { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .readers span {
+    font-size: 19px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    color: rgba(240, 240, 245, 0.55);
+  }
+
+  /* ---- slide 4: quote flow ---------------------------------------------- */
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    padding: 26px 32px;
+    border-radius: 16px;
+    background: rgba(37, 37, 64, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .step .n {
+    flex: 0 0 auto;
+    width: 58px; height: 58px;
+    display: grid; place-items: center;
+    border-radius: 12px;
+    background: var(--accent);
+    font-family: 'Jersey 20', sans-serif;
+    font-size: 38px;
+    color: #fff;
+  }
+  .step .label { display: block; font-size: 28px; font-weight: 600; color: var(--off-white); }
+  .step .sub { display: block; font-size: 21px; color: rgba(240, 240, 245, 0.55); margin-top: 6px; }
+  .step.link { border-color: rgba(174, 205, 42, 0.45); }
+  .url {
+    font-size: 19px;
+    padding: 16px 22px;
+    border-radius: 10px;
+    background: #12121f;
+    color: rgba(240, 240, 245, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .url b { color: var(--accent-light); font-weight: 400; }
+
+  /* ---- slide 5: ledger --------------------------------------------------- */
+  .ledger .c1 { flex: 0 0 120px; }
+  .ledger .c2 { flex: 1 1 auto; }
+  .ledger .c3 { flex: 0 0 200px; }
+  .ledger .row { padding-top: 15px; padding-bottom: 15px; }
+  .ledger .neg { color: var(--accent-light); }
+  .ledger .total { background: rgba(127, 160, 22, 0.14); font-weight: 600; }
+  .ledger .total .c2 { font-family: 'Inter', sans-serif; font-size: 22px; }
+
+  .aging { display: flex; gap: 14px; }
+  .bucket {
+    flex: 1 1 0;
+    padding: 18px 18px;
+    border-radius: 14px;
+    background: rgba(37, 37, 64, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: center;
+  }
+  .bucket .period { font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240, 240, 245, 0.5); margin-bottom: 8px; }
+  .bucket .amt { font-size: 26px; color: var(--off-white); }
+  .bucket.late .amt { color: var(--gold); }
+  .bucket.zero .amt { color: rgba(240, 240, 245, 0.3); }
+
+  /* ---- slide 6: quick order --------------------------------------------- */
+  .pad .c1 { flex: 0 0 70px; }
+  .pad .c2 { flex: 0 0 230px; }
+  .pad .c3 { flex: 1 1 auto; }
+  .pad .row .c3 { font-family: 'Inter', sans-serif; font-size: 22px; }
+  .pad .row { padding-top: 18px; padding-bottom: 18px; }
+  .pad .good { color: rgba(240, 240, 245, 0.8); }
+  .pad .bad { color: var(--red); }
+  .pad .mark { display: inline-block; width: 26px; font-weight: 700; }
+
+  /* ---- slide 7: tax ----------------------------------------------------- */
+  .certs .c1 { flex: 1 1 auto; font-family: 'Inter', sans-serif; }
+  .certs .c2 { flex: 0 0 170px; }
+  .certs .c3 { flex: 0 0 180px; text-align: right; }
+  .deliveries { display: flex; gap: 18px; }
+  .delivery {
+    flex: 1 1 0;
+    padding: 24px 26px;
+    border-radius: 14px;
+    background: rgba(37, 37, 64, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .delivery .to { font-size: 19px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(240, 240, 245, 0.5); }
+  .delivery .place { font-size: 28px; font-weight: 600; margin: 8px 0 16px; }
+  .delivery .line { display: flex; justify-content: space-between; font-size: 22px; color: rgba(240, 240, 245, 0.65); margin-top: 6px; }
+  .delivery .line b { color: var(--off-white); font-weight: 500; }
+  .delivery.exempt { border-color: rgba(174, 205, 42, 0.45); }
+  .delivery.exempt .line.tax b { color: var(--accent-light); }
+  .delivery .why { font-size: 18px; color: rgba(240, 240, 245, 0.45); margin-top: 14px; }
+
+  /* ---- footer lockup --------------------------------------------------- */
+  .footer {
+    position: absolute;
+    left: 130px;
+    bottom: 62px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: rgba(240, 240, 245, 0.4);
+  }
+  .footer img { width: 40px; height: 40px; border-radius: 9px; }
+  .footer b { color: rgba(240, 240, 245, 0.72); font-weight: 600; }
+
+  /* Only render the requested slide when screenshotting */
+  body.single .slide { display: none; }
+  body.single .slide.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- 1 · Cover ============================================================ -->
+<section class="slide cover" data-n="1">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Craft Commerce 5</div>
+      <h1 class="gradient-text">Forklift</h1>
+      <p class="tagline">B2B and wholesale for Craft Commerce.</p>
+      <p class="lede">Company accounts, contract price lists, approvals, quotes with pay-by-link, net terms and tax exemption.</p>
+      <div class="badges">
+        <span class="badge"><span class="dot"></span> Lite free &nbsp;·&nbsp; Pro $149</span>
+        <span class="badge">Craft 5.3+ · Commerce 5.3+ · PHP 8.2+</span>
+      </div>
+    </div>
+    <div class="mark"><img src="assets/icon.svg" alt=""></div>
+  </div>
+</section>
+
+<!-- 2 · Contract pricing ================================================= -->
+<section class="slide feature" data-n="2">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Contract price lists</div>
+      <h2>The contract<br>wins where<br>it speaks</h2>
+      <p class="lede">A negotiated sheet belongs to one customer. Everything it leaves out falls through.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span class="t">Fixed, percentage off or amount off, per line</span></li>
+        <li><span class="tick"></span><span class="t">Quantity breaks, and the next one on the page</span></li>
+        <li><span class="tick"></span><span class="t">Every price says which list set it</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="lists">
+      <div class="list-card contract"><b>Acme contract</b><span>Priority 10 · Acme Supply only</span></div>
+      <div class="list-card trade"><b>Trade 15% off</b><span>Priority 0 · every company</span></div>
+    </div>
+    <div class="sheet prices mono">
+      <div class="title"><span>Acme Supply&rsquo;s basket</span><small>Pricing::resolve()</small></div>
+      <div class="head"><span class="c1">SKU</span><span class="c2 num">Qty</span><span class="c3 num">List</span><span class="c4 num">Price</span><span class="c5">Won by</span></div>
+      <div class="row"><span class="c1">HB-M10</span><span class="c2 num dim">500</span><span class="c3 num dim">0.40</span><span class="c4 num">0.28</span><span class="c5"><span class="pill contract">Acme · fixed</span></span></div>
+      <div class="row"><span class="c1">CS-4</span><span class="c2 num dim">40</span><span class="c3 num dim">18.00</span><span class="c4 num">13.50</span><span class="c5"><span class="pill contract">Acme · 40+ break</span></span></div>
+      <div class="row"><span class="c1">PL-1200</span><span class="c2 num dim">12</span><span class="c3 num dim">24.00</span><span class="c4 num">20.40</span><span class="c5"><span class="pill trade">Trade 15%</span></span></div>
+      <div class="row"><span class="c1">GL-L</span><span class="c2 num dim">10</span><span class="c3 num dim">6.00</span><span class="c4 num">5.10</span><span class="c5"><span class="pill trade">Trade 15%</span></span></div>
+    </div>
+    <p class="note">Acme&rsquo;s sheet never mentions pallet wrap or gloves, so the trade list prices them.<br>Buy 100 casters and they drop to $12.75 each.</p>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Forklift</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-forklift</div>
+</section>
+
+<!-- 3 · Checkout verdict ================================================= -->
+<section class="slide feature" data-n="3">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Checkout</div>
+      <h2>Reasons,<br>not a yes<br>or a no</h2>
+      <p class="lede">One verdict decides every order, and it always says why.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span class="t">On hold stops new orders and nothing else</span></li>
+        <li><span class="tick"></span><span class="t">Over the credit limit? The card still works</span></li>
+        <li><span class="tick"></span><span class="t">The button says what pressing it will do</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="reason">
+      <span class="grow"><span class="code mono">needsApproval</span><span class="msg">This order is over your spend limit and needs approval.</span></span>
+      <span class="pill soft">Next step</span>
+    </div>
+    <div class="reason blocking">
+      <span class="grow"><span class="code mono">poNumberRequired</span><span class="msg">This account requires a purchase order number on every order.</span></span>
+      <span class="pill block">Blocking</span>
+    </div>
+    <div class="reason">
+      <span class="grow"><span class="code mono">overCreditLimit</span><span class="msg">$3,200 over the limit: Purchase Order withdrawn, card offered.</span></span>
+      <span class="pill list">Gateway only</span>
+    </div>
+    <div class="reason">
+      <span class="grow"><span class="code mono">actionLabel</span><span class="msg" style="color: var(--off-white); font-weight: 600;">Submit for approval</span></span>
+    </div>
+    <div class="readers">
+      <span>The button</span><span>The completion gate</span><span>The PO gateway</span><span>The CP order panel</span>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Forklift</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-forklift</div>
+</section>
+
+<!-- 4 · Quotes =========================================================== -->
+<section class="slide feature" data-n="4">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Request a quote</div>
+      <h2>Quote it,<br>send a link</h2>
+      <p class="lede">Merchant edits the order, customer pays by link: the ask in Commerce issue #1156.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span class="t">A real Commerce cart, not a PDF</span></li>
+        <li><span class="tick"></span><span class="t">Quoted prices survive every recalculation</span></li>
+        <li><span class="tick"></span><span class="t">Every gateway you have, including terms</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="step"><span class="n">1</span><span><b class="label">The buyer asks</b><span class="sub">Their basket is snapshotted onto a Quote, priced as they saw it</span></span></div>
+    <div class="step"><span class="n">2</span><span><b class="label">You price it</b><span class="sub">Change quantities and prices, add lines and delivery, set an expiry</span></span></div>
+    <div class="step link"><span class="n">3</span><span><b class="label">Send</b><span class="sub">Forklift builds the cart and emails Commerce&rsquo;s own signed link</span></span></div>
+    <div class="url mono">https://store.example/actions/<b>commerce/cart/load-cart</b>?number=9f3c&hellip;</div>
+    <div class="step"><span class="n">4</span><span><b class="label">They check out</b><span class="sub">From the click on, it is an ordinary Commerce checkout</span></span></div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Forklift</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-forklift</div>
+</section>
+
+<!-- 5 · Net terms ======================================================== -->
+<section class="slide feature" data-n="5">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Net terms &amp; credit</div>
+      <h2>A balance<br>that can&rsquo;t<br>drift</h2>
+      <p class="lede">Pay on terms through a Purchase Order gateway. The balance is a sum of the ledger, every time.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span class="t">Net 30, Net 60, 2/10 Net 30, or your own</span></li>
+        <li><span class="tick"></span><span class="t">Credit limits, statements and aging</span></li>
+        <li><span class="tick"></span><span class="t">Unpaid orders stay unpaid in Commerce</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="sheet ledger mono">
+      <div class="title"><span>Acme Supply · Net 30</span><small>Credit limit $25,000.00</small></div>
+      <div class="head"><span class="c1">Date</span><span class="c2">Entry</span><span class="c3 num">Amount</span></div>
+      <div class="row"><span class="c1 dim">02 Jul</span><span class="c2">Invoice #1041</span><span class="c3 num">8,400.00</span></div>
+      <div class="row"><span class="c1 dim">18 Jul</span><span class="c2">Invoice #1058</span><span class="c3 num">6,250.00</span></div>
+      <div class="row"><span class="c1 dim">01 Aug</span><span class="c2">Payment · cheque 2231</span><span class="c3 num neg">&minus;8,400.00</span></div>
+      <div class="row"><span class="c1 dim">21 Aug</span><span class="c2">Invoice #1102</span><span class="c3 num">4,980.00</span></div>
+      <div class="row"><span class="c1 dim">09 Sep</span><span class="c2">Invoice #1133</span><span class="c3 num">3,120.00</span></div>
+      <div class="row total"><span class="c1"></span><span class="c2">Balance = SUM(amount)</span><span class="c3 num">14,350.00</span></div>
+    </div>
+    <div class="aging mono">
+      <div class="bucket"><div class="period">Current</div><div class="amt">3,120.00</div></div>
+      <div class="bucket"><div class="period">31&ndash;60</div><div class="amt">4,980.00</div></div>
+      <div class="bucket late"><div class="period">61&ndash;90</div><div class="amt">6,250.00</div></div>
+      <div class="bucket zero"><div class="period">90+</div><div class="amt">0.00</div></div>
+    </div>
+    <p class="note">$10,650.00 of credit left. Payments settle the oldest charge first.</p>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Forklift</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-forklift</div>
+</section>
+
+<!-- 6 · Quick order ====================================================== -->
+<section class="slide feature" data-n="6">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Quick order</div>
+      <h2>Nothing<br>silently<br>dropped</h2>
+      <p class="lede">Wholesale buyers don&rsquo;t browse. They paste in a list.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span class="t">A quick-order pad, a CSV upload, or reorder</span></li>
+        <li><span class="tick"></span><span class="t">Every failed row gets a line number and a reason</span></li>
+        <li><span class="tick"></span><span class="t">Reorders re-price at today&rsquo;s contract rates</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="sheet pad mono">
+      <div class="title"><span>order-sept.csv</span><small>5 lines · 3 added · 2 need you</small></div>
+      <div class="head"><span class="c1">Line</span><span class="c2">Typed</span><span class="c3">Result</span></div>
+      <div class="row"><span class="c1 dim">1</span><span class="c2">HB-M10, 500</span><span class="c3 good"><span class="mark" style="color: var(--accent-light)">&#10003;</span>500 &times; $0.28 &middot; Acme</span></div>
+      <div class="row"><span class="c1 dim">2</span><span class="c2">CS-4, 40</span><span class="c3 good"><span class="mark" style="color: var(--accent-light)">&#10003;</span>40 &times; $13.50 &middot; Acme</span></div>
+      <div class="row"><span class="c1 dim">3</span><span class="c2">GL-XL, 10</span><span class="c3 bad"><span class="mark">&times;</span>&ldquo;GL-XL&rdquo; was not found.</span></div>
+      <div class="row"><span class="c1 dim">4</span><span class="c2">PL-1200, 12</span><span class="c3 good"><span class="mark" style="color: var(--accent-light)">&#10003;</span>12 &times; $20.40 &middot; Trade</span></div>
+      <div class="row"><span class="c1 dim">5</span><span class="c2">CS-4, 0</span><span class="c3 bad"><span class="mark">&times;</span>Quantity must be at least 1.</span></div>
+    </div>
+    <p class="note">The pad, the upload and reorder all return this same result,<br>priced by the same resolver as the product page.</p>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Forklift</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-forklift</div>
+</section>
+
+<!-- 7 · Tax exemption ==================================================== -->
+<section class="slide feature" data-n="7">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Tax exemption</div>
+      <h2>Exempt where<br>the paper<br>says so</h2>
+      <p class="lede">Certificates per company, reviewed by a person, matched to the delivery address.</p>
+      <ul class="points">
+        <li><span class="tick"></span><span class="t">Approved, unexpired, and covering the address</span></li>
+        <li><span class="tick"></span><span class="t">Commerce&rsquo;s own tax arithmetic, not a fork</span></li>
+        <li><span class="tick"></span><span class="t">Avalara and TaxJar stores keep their engine</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="sheet certs mono">
+      <div class="title"><span>Acme Supply · certificates</span><small>3 on file</small></div>
+      <div class="head"><span class="c1">Certificate</span><span class="c2">Expires</span><span class="c3">Status</span></div>
+      <div class="row"><span class="c1">Texas resale</span><span class="c2 dim">2027-03-31</span><span class="c3"><span class="pill ok">Approved</span></span></div>
+      <div class="row"><span class="c1">Ohio blanket exemption</span><span class="c2 dim">2028-01-31</span><span class="c3"><span class="pill soft">Pending review</span></span></div>
+      <div class="row"><span class="c1">Georgia resale</span><span class="c2 dim">2026-06-30</span><span class="c3"><span class="pill list">Expired</span></span></div>
+    </div>
+    <div class="deliveries">
+      <div class="delivery exempt">
+        <div class="to">Deliver to</div>
+        <div class="place">Dallas, TX</div>
+        <div class="line"><span>Subtotal</span><b class="mono">$4,980.00</b></div>
+        <div class="line tax"><span>Tax</span><b class="mono">$0.00</b></div>
+        <div class="why">Texas resale certificate, approved</div>
+      </div>
+      <div class="delivery">
+        <div class="to">Deliver to</div>
+        <div class="place">Columbus, OH</div>
+        <div class="line"><span>Subtotal</span><b class="mono">$4,980.00</b></div>
+        <div class="line tax"><span>Tax 5.75%</span><b class="mono">$286.35</b></div>
+        <div class="why">Ohio certificate not yet approved</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Forklift</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-forklift</div>
+</section>
+
+<script>
+  var n = new URLSearchParams(location.search).get('s');
+  if (n) {
+    document.body.classList.add('single');
+    var el = document.querySelector('.slide[data-n="' + n + '"]');
+    if (el) el.classList.add('active');
+  }
+</script>
+</body>
+</html>

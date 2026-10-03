@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round">
+  <!--
+    Watermark: the machine drawn as an outline, not as the filled mark, and without its load.
+
+    Filled, the counterweight is a 38x24 slab and the load an 18x20 block, and at 1180px across a
+    slide either one reads as a hard-edged grey box laid over the artwork rather than as a forklift.
+    Strip the mass, keep the line. The load goes entirely: outlined, it is a square frame, which is
+    the same trap by another route.
+  -->
+  <path d="M46 20h30a4 4 0 0 1 4 4v3H50v-3a4 4 0 0 0-4-4z"/>
+  <path d="M52 27v19M78 27v19"/>
+  <path d="M52 46h32a6 6 0 0 1 6 6v18A10 10 0 0 0 78 70H72.39A12 12 0 0 0 52 69.37z"/>
+  <rect x="34" y="14" width="6" height="62"/>
+  <rect x="43" y="14" width="5" height="62"/>
+  <rect x="34" y="40" width="16" height="6"/>
+  <path d="M34 66h4v8M10 74h28v6H10z"/>
+  <circle cx="62" cy="76" r="10"/>
+  <circle cx="62" cy="76" r="4"/>
+  <circle cx="84" cy="78" r="8"/>
+  <circle cx="84" cy="78" r="3"/>
+</svg>

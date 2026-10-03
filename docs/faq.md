@@ -1,4 +1,9 @@
-# Forklift — frequently asked questions
+---
+title: FAQ
+slug: faq
+order: 60
+summary: Catalog pricing and Bulk Pricing compared, approvals, terms and credit, tax, and what a lapsed licence does.
+---
 
 ## How is this different from Commerce's catalog pricing rules?
 

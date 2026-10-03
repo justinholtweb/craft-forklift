@@ -317,4 +317,5 @@ Both are idempotent and self-cleaning.
 
 ## Licence
 
-Proprietary. See [LICENSE.md](LICENSE.md).
+The Craft License. See [LICENSE.md](LICENSE.md). Lite is free; Pro is licensed per production
+install through the Craft Plugin Store.

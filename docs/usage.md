@@ -1,4 +1,9 @@
-# Using Forklift
+---
+title: Usage
+slug: usage
+order: 30
+summary: Companies and buyers, price lists, approvals, quotes, credit and certificates, day to day.
+---
 
 ## Setting up an account
 

@@ -1,4 +1,9 @@
-# Templating with Forklift
+---
+title: Templating
+slug: templating
+order: 40
+summary: Everything on craft.forklift, with front-end forms for the pad, the upload and quotes.
+---
 
 Everything is on `craft.forklift`. **Nothing on it writes** — a template asks questions, a
 controller makes changes. There is no `addToCart()` here and no `approve()`, because a template

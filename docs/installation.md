@@ -1,4 +1,9 @@
-# Installing Forklift
+---
+title: Installation
+slug: installation
+order: 10
+summary: Requirements, install, the two editions, and a first run from company to order.
+---
 
 ## Requirements
 
