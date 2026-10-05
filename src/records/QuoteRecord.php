@@ -19,8 +19,8 @@ use justinholtweb\forklift\db\Table;
  * @property string|null $reference
  * @property string|null $message
  * @property string|null $internalNote
- * @property string|null $shippingCost
- * @property string|null $discount
+ * @property float|string|null $shippingCost
+ * @property float|string|null $discount
  * @property string|null $expiryDate
  * @property string|null $sentDate
  * @property string|null $respondedDate

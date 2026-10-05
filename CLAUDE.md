@@ -33,10 +33,26 @@ skews harder to manufacturers and distributors than Woo's does.
    the next quantity break and any reason a contract price was suppressed.
 
 2. **`services\Checkout::verdict()` is the only place an order's B2B eligibility is decided.** The
-   front-end button, the `EVENT_BEFORE_COMPLETE_ORDER` gate, the gateway availability check and
+   front-end button, the checkout gate (`Payments::EVENT_BEFORE_PROCESS_PAYMENT`, backstopped by
+   `EVENT_BEFORE_COMPLETE_ORDER`), the gateway availability check and
    the CP order panel all read the same `CheckoutVerdict`. It is a list of *reasons*, never a
    bare boolean, and it memoizes on the order number **and its total** — memoizing on the number
    alone is the mistake Commerce's own shipping-rule cache makes.
+
+**Anything a visitor reaches without signing in shows only what the storefront would.** The pad,
+`lookup` and `suggest` resolve SKUs through `QuickOrder::visiblePurchasable()` — the element type's
+own default query for the current site, plus the variant's product must be live — never straight
+off `commerce_purchasables`. A hidden SKU is "not found", worded like a missing one; LIKE input is
+escaped. `tests/integration/security.php`.
+
+### Events (5.1.0)
+
+`events\ApprovalEvent`, `QuoteEvent`, `CreditEntryEvent` (all `CancelableEvent`) and
+`DefinePriceEvent`. Before/after on approval request + decide, quote send + decline, credit entry
+save + delete; after-only on quote accept (fires from order completion — money has moved);
+`Pricing::EVENT_DEFINE_PRICE` wraps `_resolve()` and returns whatever `$event->result` holds.
+Documented in `docs/events.md`. Every trigger is behind `hasEventHandlers()` — pricing runs per
+line item.
 
 A third rule, not an invariant but close: **`services\Credit::balanceFor()` derives a balance by
 summing the ledger, always.** There is a hygiene check in the suite asserting no service ever
@@ -78,12 +94,13 @@ shipping methods and discounts. FKs cascade for rows that only exist because of 
 **null the reference** for rows that record something that happened: deleting a price list does
 not erase the invoice it priced, and deleting an order does not erase the payment that settled it.
 
-### The five hooks into Commerce, and no more
+### The six hooks into Commerce, and no more
 
 | Hook | Used for |
 | --- | --- |
 | `LineItems::EVENT_POPULATE_LINE_ITEM` | contract and quoted prices, applied *after* Commerce sets its own so the snapshot keeps the list price |
-| `Order::EVENT_BEFORE_COMPLETE_ORDER` | the checkout gate |
+| `Payments::EVENT_BEFORE_PROCESS_PAYMENT` | the checkout gate — `ProcessPaymentEvent` is cancelable, and it runs before any charge |
+| `Order::EVENT_BEFORE_COMPLETE_ORDER` | the gate's backstop for orders completed *without* a payment — not cancelable, so it throws a `UserException` with the reasons |
 | `Order::EVENT_AFTER_COMPLETE_ORDER` | raise the invoice, close the quote, stamp the exemption |
 | `Taxes::EVENT_REGISTER_TAX_ENGINE` | swap the adjuster — **only over Commerce's own engine**, so Avalara/TaxJar stores keep theirs |
 | `Gateways::EVENT_REGISTER_GATEWAY_TYPES` | the purchase-order gateway |
@@ -157,6 +174,16 @@ lets an order through. Those orders are flagged `approvalBypassed` and named in 
 - **Yii skips an inline validator when the attribute is empty** (`skipOnEmpty` defaults true), which
   is exactly when "these two fields have to agree" has something to say. Pass
   `'skipOnEmpty' => false`.
+- **`Order::EVENT_BEFORE_COMPLETE_ORDER` is not cancelable.** Commerce triggers it with a plain
+  `yii\base\Event` and never reads `isValid`; *setting* `isValid` on a plain Event throws
+  `UnknownPropertyException`. And completion runs **after** the payment. Until 5.1.0 the gate lived
+  there alone, so a refused order was charged and then left uncompleted. The veto that works is
+  `Payments::EVENT_BEFORE_PROCESS_PAYMENT`. The suite asserted the verdict, never the hook.
+- **The front-end company switcher lives on the CP's `CompaniesController`**, so its `beforeAction`
+  permission must exempt `switch` — until 5.1.0 every buyer got a 403.
+- **Commerce's `getIsAvailable()` hides a disabled product's variant too**, which masked the
+  visibility check in tests: assert the *wording* ("was not found"), because "not available"
+  confirms the SKU exists.
 - **Project config writes are buffered** and a bare console script never reaches Craft's
   after-request flush. `ProjectConfig::flush()` is the pair; `saveModifiedConfigData()` alone
   writes the table and not the YAML.
@@ -172,6 +199,8 @@ unreliable there — use `docker exec`:
 ```sh
 docker exec -w /var/www/html ddev-plugin-testing-web php /var/www/craft-forklift/tests/integration/checks.php
 docker exec -w /var/www/html ddev-plugin-testing-web php /var/www/craft-forklift/tests/integration/http-checks.php
+docker exec -w /var/www/html ddev-plugin-testing-web php /var/www/craft-forklift/tests/integration/security.php   # 19: visitor visibility, the switcher, events
+docker exec -w /sites/craft-forklift ddev-phpstan-runner-web bash -c 'vendor/bin/phpstan analyse --memory-limit=1G && vendor/bin/ecs check'
 docker run --rm -v "$PWD:/app" -w /app php:8.2-cli bash -c 'find src tests -name "*.php" -print0 | xargs -0 -n1 php -l'
 ```
 

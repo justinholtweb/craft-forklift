@@ -9,6 +9,7 @@ use craft\commerce\base\PurchasableInterface;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Variant;
 use craft\commerce\Plugin as Commerce;
+use justinholtweb\forklift\events\DefinePriceEvent;
 use justinholtweb\forklift\models\PriceListEntry;
 use justinholtweb\forklift\models\PriceResult;
 use justinholtweb\forklift\Plugin;
@@ -64,6 +65,12 @@ use yii\base\Component;
  */
 class Pricing extends Component
 {
+    /**
+     * The resolved price, before anything uses it. Change `$event->result` to change what the
+     * buyer pays everywhere Forklift prices.
+     */
+    public const EVENT_DEFINE_PRICE = 'definePrice';
+
     /** @var array<string, PriceListEntry[]> Company + purchasable => matching entries. */
     private array $_entryCache = [];
 
@@ -87,7 +94,26 @@ class Pricing extends Component
         ?Order $order = null,
     ): PriceResult {
         $purchasable = $this->_purchasable($purchasable);
+        $result = $this->_resolve($purchasable, $qty, $companyId, $order);
 
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_PRICE)) {
+            $event = new DefinePriceEvent([
+                'purchasable' => $purchasable,
+                'qty' => $result->qty,
+                'companyId' => $companyId,
+                'order' => $order,
+                'result' => $result,
+            ]);
+            $this->trigger(self::EVENT_DEFINE_PRICE, $event);
+            $result = $event->result;
+        }
+
+        return $result;
+    }
+
+    /** The resolution itself — quote pin, then contract lists, then list price. */
+    private function _resolve(?PurchasableInterface $purchasable, int $qty, ?int $companyId, ?Order $order): PriceResult
+    {
         $result = new PriceResult([
             'qty' => max(1, $qty),
         ]);

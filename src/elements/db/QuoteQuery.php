@@ -7,7 +7,6 @@ namespace justinholtweb\forklift\elements\db;
 use craft\elements\db\ElementQuery;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
-use DateTime;
 use justinholtweb\forklift\elements\Quote;
 
 /**

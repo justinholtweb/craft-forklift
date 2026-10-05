@@ -12,6 +12,7 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use justinholtweb\forklift\db\Table;
+use justinholtweb\forklift\events\ApprovalEvent;
 use justinholtweb\forklift\models\Approval;
 use justinholtweb\forklift\models\Role;
 use justinholtweb\forklift\Plugin;
@@ -39,6 +40,18 @@ use yii\base\Component;
  */
 class Approvals extends Component
 {
+    /** Cancelable. A request is about to be saved; `$approval` is built but has no id yet. */
+    public const EVENT_BEFORE_REQUEST = 'beforeRequest';
+
+    /** A request was saved and the approvers notified. */
+    public const EVENT_AFTER_REQUEST = 'afterRequest';
+
+    /** Cancelable. An approval is about to be approved, declined or cancelled — see `$status`. */
+    public const EVENT_BEFORE_DECIDE = 'beforeDecide';
+
+    /** An approval was approved, declined or cancelled. */
+    public const EVENT_AFTER_DECIDE = 'afterDecide';
+
     /**
      * How much an approved cart may grow before the approval stops covering it.
      *
@@ -208,6 +221,15 @@ class Approvals extends Component
                 : null,
         ]);
 
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_REQUEST)) {
+            $event = new ApprovalEvent(['approval' => $approval, 'order' => $order, 'note' => $note]);
+            $this->trigger(self::EVENT_BEFORE_REQUEST, $event);
+
+            if (!$event->isValid) {
+                return null;
+            }
+        }
+
         if (!$this->saveApproval($approval)) {
             return null;
         }
@@ -216,6 +238,10 @@ class Approvals extends Component
 
         if ($settings->notifyApprovers) {
             Plugin::getInstance()->notifications->approvalRequested($approval);
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_REQUEST)) {
+            $this->trigger(self::EVENT_AFTER_REQUEST, new ApprovalEvent(['approval' => $approval, 'order' => $order, 'note' => $note]));
         }
 
         return $approval;
@@ -248,6 +274,21 @@ class Approvals extends Component
             return false;
         }
 
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_DECIDE)) {
+            $event = new ApprovalEvent([
+                'approval' => $approval,
+                'order' => $approval->getOrder(),
+                'status' => $status,
+                'approver' => $approver,
+                'note' => $note,
+            ]);
+            $this->trigger(self::EVENT_BEFORE_DECIDE, $event);
+
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
         $approval->status = $status;
         $approval->approverId = $approver?->id;
         $approval->decisionNote = $note;
@@ -261,6 +302,16 @@ class Approvals extends Component
             && in_array($status, [Approval::STATUS_APPROVED, Approval::STATUS_DECLINED], true)
         ) {
             Plugin::getInstance()->notifications->approvalDecided($approval);
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_DECIDE)) {
+            $this->trigger(self::EVENT_AFTER_DECIDE, new ApprovalEvent([
+                'approval' => $approval,
+                'order' => $approval->getOrder(),
+                'status' => $status,
+                'approver' => $approver,
+                'note' => $note,
+            ]));
         }
 
         return true;

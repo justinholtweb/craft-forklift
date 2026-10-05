@@ -278,13 +278,20 @@ Two invariants, and everything else is arrangement:
    and the control panel's price preview all read the `PriceResult` it returns, so a price a buyer
    is shown cannot disagree with the price they are charged.
 2. **`services\Checkout::verdict()` is the only place an order's B2B eligibility is decided.** The
-   front-end button, the before-complete gate, the gateway's availability check and the control
+   front-end button, the checkout gate, the gateway's availability check and the control
    panel all read the same verdict, so what the button says is what checkout does.
 
-Five hooks into Commerce and no more: `LineItems::EVENT_POPULATE_LINE_ITEM`,
-`Order::EVENT_BEFORE_COMPLETE_ORDER`, `Order::EVENT_AFTER_COMPLETE_ORDER`,
-`Taxes::EVENT_REGISTER_TAX_ENGINE` and `Gateways::EVENT_REGISTER_GATEWAY_TYPES`. The tax engine is
+Six hooks into Commerce and no more: `LineItems::EVENT_POPULATE_LINE_ITEM`,
+`Payments::EVENT_BEFORE_PROCESS_PAYMENT` (the checkout gate — before any money moves),
+`Order::EVENT_BEFORE_COMPLETE_ORDER` (the same gate, for orders completed without a payment),
+`Order::EVENT_AFTER_COMPLETE_ORDER`, `Taxes::EVENT_REGISTER_TAX_ENGINE` and
+`Gateways::EVENT_REGISTER_GATEWAY_TYPES`. The tax engine is
 only swapped when Commerce's own is in place — a store running Avalara or TaxJar keeps theirs.
+
+And Forklift's own events, for a module that needs to react or veto: approvals requested and
+decided, quotes sent, accepted and declined, credit-ledger entries saved and deleted (the `before…`
+ones cancelable), and `Pricing::EVENT_DEFINE_PRICE` to change any price Forklift resolves. See the
+Events page in the docs.
 
 ---
 
@@ -295,6 +302,7 @@ Two suites, both run inside the plugin's own test site:
 ```sh
 php /path/to/craft-forklift/tests/integration/checks.php       # 143 checks
 php /path/to/craft-forklift/tests/integration/http-checks.php  #  37 checks
+php /path/to/craft-forklift/tests/integration/security.php     #  19 checks: what visitors can read, the switcher, the events
 ```
 
 The second exists because two of the bugs found building this were unreachable from a console

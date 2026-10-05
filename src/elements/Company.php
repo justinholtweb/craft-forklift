@@ -10,11 +10,9 @@ use craft\commerce\elements\db\OrderQuery;
 use craft\commerce\elements\Order;
 use craft\db\Query;
 use craft\elements\Address;
-use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\enums\Color;
 use craft\helpers\Cp;
-use craft\helpers\Db;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
@@ -172,7 +170,7 @@ class Company extends Element
         return true;
     }
 
-    public static function find(): ElementQueryInterface
+    public static function find(): CompanyQuery
     {
         return new CompanyQuery(static::class);
     }

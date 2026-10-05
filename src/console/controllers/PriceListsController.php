@@ -278,7 +278,7 @@ class PriceListsController extends Controller
         while (($cells = fgetcsv($handle, 4096)) !== false) {
             $line++;
 
-            if ($cells === [null] || $cells === false) {
+            if ($cells === [null]) {
                 continue;
             }
 

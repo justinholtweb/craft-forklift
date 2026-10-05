@@ -62,6 +62,15 @@ class QuickOrderController extends Controller
             ]);
         }
 
+        // Visible but not for sale — out of stock, or not available for purchase: say so, the
+        // same as the pad does, rather than quoting a price for something that cannot be bought.
+        if (!$purchasable->getIsAvailable()) {
+            return $this->asJson([
+                'found' => false,
+                'error' => Craft::t('forklift', '“{sku}” is not available to order.', ['sku' => $purchasable->getSku()]),
+            ]);
+        }
+
         $price = $plugin->pricing->resolve($purchasable, $qty, $plugin->companies->getCurrentCompany()?->id);
 
         return $this->asJson([

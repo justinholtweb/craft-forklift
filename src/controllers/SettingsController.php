@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace justinholtweb\forklift\controllers;
 
 use Craft;
-use craft\models\FieldLayout;
 use craft\web\Controller;
 use justinholtweb\forklift\elements\Company;
 use justinholtweb\forklift\elements\Quote;

@@ -8,12 +8,11 @@ use Craft;
 use craft\base\Element;
 use craft\commerce\elements\Order;
 use craft\commerce\Plugin as Commerce;
-use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\enums\Color;
 use craft\helpers\Cp;
-use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
@@ -158,7 +157,7 @@ class Quote extends Element
         return true;
     }
 
-    public static function find(): ElementQueryInterface
+    public static function find(): QuoteQuery
     {
         return new QuoteQuery(static::class);
     }

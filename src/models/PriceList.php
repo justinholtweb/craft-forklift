@@ -91,6 +91,12 @@ class PriceList extends Model
         return $this->_companyIds;
     }
 
+    /** Whether the assignments were set on this model, rather than merely read. */
+    public function getHasCompanyIds(): bool
+    {
+        return $this->_companyIds !== null;
+    }
+
     /**
      * @param int[]|null $ids Null means "nobody touched the assignments" and leaves them alone —
      *                        an absent form field must never unassign every customer.

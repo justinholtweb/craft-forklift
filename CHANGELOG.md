@@ -2,6 +2,27 @@
 
 All notable changes to Forklift are documented here.
 
+## 5.1.0 — 2026-10-05
+
+> {warning} This release fixes the checkout gate. Until now an order Forklift should have refused — an account on hold, an approval outstanding, over a spend limit, a missing PO number — was **charged and then left uncompleted**: the refusal ran after the payment and failed with a PHP error rather than stopping it. If your store has seen "Completing order failed" or 500s at checkout, look for carts with a successful payment that never became orders. Orders are now refused before any payment is taken.
+
+### Fixed
+
+- **The checkout gate charged orders it should have refused.** It was hooked to `Order::EVENT_BEFORE_COMPLETE_ORDER`, which Commerce does not let a plugin cancel — it is triggered with a plain event, so setting `isValid` threw `UnknownPropertyException` — and order completion runs after the payment. The gate now vetoes `Payments::EVENT_BEFORE_PROCESS_PAYMENT`, before anything is charged, with the reasons on the order as notices. An order completed without a payment is still refused at completion, now with the reasons rather than a PHP error.
+- **Buyers couldn't switch account.** The front-end account switcher (`forklift/companies/switch`, used by the bundled portal) sat behind the control panel's "View companies" permission, so every buyer who belonged to more than one company got a 403. It now needs only a signed-in member of the company being switched to.
+
+### Security
+
+- **The quick-order pad, SKU lookup and autocomplete exposed products a visitor shouldn't see.** They are open to visitors who have not signed in, on purpose, but read `commerce_purchasables` directly — so anyone could enumerate disabled, unreleased, expired and trashed SKUs with their descriptions and prices, and `suggest?q=%%` returned every SKU in the store. They now find only what the storefront would show on the current site — an enabled variant of a live product, no drafts — and anything else is "not found", worded exactly like a SKU that does not exist. `lookup` no longer quotes a price for something that is not for sale, and `suggest` leaves it out. A `%`, `_` or `\` in the search is matched literally.
+
+### Added
+
+- **Events**, so a module can react to or veto what Forklift does with money: `Approvals::EVENT_BEFORE_REQUEST`/`AFTER_REQUEST` and `EVENT_BEFORE_DECIDE`/`AFTER_DECIDE`; `Quotes::EVENT_BEFORE_SEND`/`AFTER_SEND`, `EVENT_AFTER_ACCEPT` and `EVENT_BEFORE_DECLINE`/`AFTER_DECLINE`; `Credit::EVENT_BEFORE_SAVE_ENTRY`/`AFTER_SAVE_ENTRY` and `EVENT_BEFORE_DELETE_ENTRY`/`AFTER_DELETE_ENTRY`; and `Pricing::EVENT_DEFINE_PRICE` to change any price Forklift resolves. Every `before…` event is cancelable. See the new Events page.
+
+### Changed
+
+- PHPStan and ECS configuration, and the findings they raised tidied.
+
 ## 5.0.0 — 2026-08-27
 
 Initial release.

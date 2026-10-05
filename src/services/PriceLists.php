@@ -13,7 +13,6 @@ use justinholtweb\forklift\db\Table;
 use justinholtweb\forklift\models\PriceList;
 use justinholtweb\forklift\models\PriceListEntry;
 use yii\base\Component;
-use yii\db\Expression;
 
 /**
  * Price lists and their entries: storage, assignment, and import/export.
@@ -143,10 +142,8 @@ class PriceLists extends Component
         // Null means the caller never touched the assignments. An absent form field must not
         // unassign every customer from a list — that is a very quiet way to put a hundred trade
         // accounts back on retail prices.
-        $companyIds = $list->getCompanyIds();
-
-        if ($companyIds !== null) {
-            $this->setCompaniesForPriceList((int)$list->id, $companyIds);
+        if ($list->getHasCompanyIds()) {
+            $this->setCompaniesForPriceList((int)$list->id, $list->getCompanyIds());
         }
 
         $this->_clearCaches();

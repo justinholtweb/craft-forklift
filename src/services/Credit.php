@@ -12,6 +12,7 @@ use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use DateTime;
 use justinholtweb\forklift\db\Table;
+use justinholtweb\forklift\events\CreditEntryEvent;
 use justinholtweb\forklift\models\CreditEntry;
 use justinholtweb\forklift\models\Statement;
 use justinholtweb\forklift\Plugin;
@@ -37,6 +38,18 @@ use yii\base\Component;
  */
 class Credit extends Component
 {
+    /** Cancelable. A ledger entry — charge, payment or adjustment — is about to be written. */
+    public const EVENT_BEFORE_SAVE_ENTRY = 'beforeSaveEntry';
+
+    /** A ledger entry was written; the company's balance has changed. */
+    public const EVENT_AFTER_SAVE_ENTRY = 'afterSaveEntry';
+
+    /** Cancelable. A ledger entry is about to be deleted. */
+    public const EVENT_BEFORE_DELETE_ENTRY = 'beforeDeleteEntry';
+
+    /** A ledger entry was deleted. */
+    public const EVENT_AFTER_DELETE_ENTRY = 'afterDeleteEntry';
+
     /** @var array<int, float> */
     private array $_balances = [];
 
@@ -132,6 +145,17 @@ class Credit extends Component
             return false;
         }
 
+        $isNew = !$entry->id;
+
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_ENTRY)) {
+            $event = new CreditEntryEvent(['entry' => $entry, 'isNew' => $isNew]);
+            $this->trigger(self::EVENT_BEFORE_SAVE_ENTRY, $event);
+
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
         $entry->entryDate ??= DateTimeHelper::currentUTCDateTime();
 
         $now = Db::prepareDateForDb(DateTimeHelper::currentUTCDateTime());
@@ -162,6 +186,10 @@ class Credit extends Component
 
         unset($this->_balances[(int)$entry->companyId]);
 
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_ENTRY)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_ENTRY, new CreditEntryEvent(['entry' => $entry, 'isNew' => $isNew]));
+        }
+
         return true;
     }
 
@@ -173,8 +201,21 @@ class Credit extends Component
             return false;
         }
 
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_ENTRY)) {
+            $event = new CreditEntryEvent(['entry' => $entry]);
+            $this->trigger(self::EVENT_BEFORE_DELETE_ENTRY, $event);
+
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
         Craft::$app->getDb()->createCommand()->delete(Table::CREDIT_ENTRIES, ['id' => $id])->execute();
         unset($this->_balances[(int)$entry->companyId]);
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_ENTRY)) {
+            $this->trigger(self::EVENT_AFTER_DELETE_ENTRY, new CreditEntryEvent(['entry' => $entry]));
+        }
 
         return true;
     }

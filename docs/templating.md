@@ -245,3 +245,13 @@ const res = await fetch(`/index.php?action=forklift/quick-order/lookup&sku=${sku
 });
 const { found, price, sourceLabel, nextBreak } = await res.json();
 ```
+
+The pad, `lookup` and `suggest` are open to visitors who have not signed in, so they only ever
+find what the storefront itself would show on this site: an enabled variant of a live product —
+nothing disabled, scheduled, expired, trashed or a draft. Anything else is “not found”, worded
+exactly like a SKU that does not exist. `lookup` answers `found: false` without a price for a SKU
+that exists but is not for sale, and `suggest` leaves those out. A `%` or `_` in the search text is
+matched literally.
+
+The account switcher needs a signed-in buyer who belongs to the account; it needs no control-panel
+access.

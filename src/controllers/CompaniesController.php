@@ -27,7 +27,12 @@ class CompaniesController extends Controller
             return false;
         }
 
-        $this->requirePermission(Plugin::PERMISSION_VIEW_COMPANIES);
+        // `switch` is the front-end company switcher a buyer uses from the portal, not a CP screen:
+        // it checks sign-in and membership itself. Before 5.1.0 it inherited the CP permission
+        // below, so every buyer who belonged to more than one company got a 403.
+        if ($action->id !== 'switch') {
+            $this->requirePermission(Plugin::PERMISSION_VIEW_COMPANIES);
+        }
 
         return true;
     }

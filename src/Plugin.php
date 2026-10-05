@@ -9,10 +9,12 @@ use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
 use craft\commerce\elements\Order;
 use craft\commerce\events\LineItemEvent;
+use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\events\TaxEngineEvent;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\services\Gateways;
 use craft\commerce\services\LineItems;
+use craft\commerce\services\Payments;
 use craft\commerce\services\Taxes;
 use craft\events\ConfigEvent;
 use craft\events\ElementEvent;
@@ -54,6 +56,7 @@ use justinholtweb\forklift\services\Quotes;
 use justinholtweb\forklift\services\Terms;
 use justinholtweb\forklift\twig\ForkliftVariable;
 use yii\base\Event;
+use yii\base\UserException;
 
 /**
  * Forklift — B2B and wholesale for Craft Commerce.
@@ -67,7 +70,8 @@ use yii\base\Event;
  * | Hook | What it does |
  * | --- | --- |
  * | `LineItems::EVENT_POPULATE_LINE_ITEM` | applies the contract or quoted price, *after* Commerce has set its own so the snapshot still records the list price |
- * | `Order::EVENT_BEFORE_COMPLETE_ORDER` | the checkout gate — a cancelled event is the only thing that reliably stops an order completing |
+ * | `Payments::EVENT_BEFORE_PROCESS_PAYMENT` | the checkout gate — cancelable, and before any charge |
+ * | `Order::EVENT_BEFORE_COMPLETE_ORDER` | the gate's backstop for unpaid completions — not cancelable, so it throws |
  * | `Order::EVENT_AFTER_COMPLETE_ORDER` | raise the invoice, close the quote, stamp the exemption |
  * | `Taxes::EVENT_REGISTER_TAX_ENGINE` | swap in an adjuster that honours exemption certificates — and only over Commerce's own engine |
  * | `Gateways::EVENT_REGISTER_GATEWAY_TYPES` | the purchase-order gateway |
@@ -344,50 +348,88 @@ class Plugin extends BasePlugin
         });
     }
 
+    /**
+     * The verdict, when it refuses the order; null when the order may go ahead.
+     *
+     * Refusals are put on the order as notices, so the checkout says why. A gate that throws must
+     * not take checkout down: failing open is the right direction, because the alternative is a
+     * store where nobody can buy anything because one company row is malformed.
+     */
+    private function blockingVerdict(Order $order): ?CheckoutVerdict
+    {
+        try {
+            $verdict = $this->checkout->verdict($order);
+        } catch (\Throwable $e) {
+            Craft::error('Forklift could not evaluate the checkout gate: ' . $e->getMessage(), self::LOG_CATEGORY);
+
+            return null;
+        }
+
+        if ($verdict->approvalBypassed && $order->id) {
+            $this->orders->setValuesForOrder((int)$order->id, ['approvalBypassed' => true]);
+        }
+
+        if ($verdict->getIsAllowed()) {
+            return null;
+        }
+
+        foreach ($verdict->getBlockingMessages() as $message) {
+            $order->addNotice(new \craft\commerce\models\OrderNotice([
+                'type' => 'forklift',
+                'attribute' => 'forklift',
+                'message' => $message,
+            ]));
+        }
+
+        return $verdict;
+    }
+
     // Commerce: the checkout gate
     // -------------------------------------------------------------------------
 
     /**
-     * Stop an order completing when the verdict says it may not.
+     * Stop an order when the verdict says it may not be placed.
      *
-     * `EVENT_BEFORE_COMPLETE_ORDER` is cancellable and is the only reliable place to do this:
-     * a controller check can be bypassed by any other code path that completes an order, and a
-     * validation rule on the order fires in places that have nothing to do with checkout.
+     * **Before the money moves.** `Payments::EVENT_BEFORE_PROCESS_PAYMENT` is the one cancelable
+     * point Commerce offers ahead of a charge, and every paid checkout — a card, the purchase-order
+     * gateway, a free order — goes through it. Until 5.1.0 the gate was on
+     * `Order::EVENT_BEFORE_COMPLETE_ORDER` alone, which is *not* cancelable: Commerce triggers it
+     * with a plain `yii\base\Event` and never reads `isValid`. Setting it threw
+     * `UnknownPropertyException` — and completion runs after the payment, so a refused order was
+     * charged and then left uncompleted.
+     *
+     * `EVENT_BEFORE_COMPLETE_ORDER` remains as the backstop for orders completed *without* a
+     * payment (`commerce/cart/complete` on a store allowing it, a CP completion). Nothing there can
+     * be cancelled, so it throws — deliberately and with the reasons — which Commerce's
+     * `cart/complete` reports as "Completing order failed".
      */
     private function registerCheckoutGate(): void
     {
+        Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT, function(ProcessPaymentEvent $event) {
+            $verdict = $this->blockingVerdict($event->order);
+
+            if ($verdict !== null) {
+                $event->isValid = false;
+            }
+        });
+
         Event::on(Order::class, Order::EVENT_BEFORE_COMPLETE_ORDER, function(Event $event) {
             /** @var Order $order */
             $order = $event->sender;
+            $verdict = $this->blockingVerdict($order);
 
-            try {
-                $verdict = $this->checkout->verdict($order);
-            } catch (\Throwable $e) {
-                // A gate that throws must not take checkout down. Failing open is the right
-                // direction here: the alternative is a store where nobody can buy anything
-                // because one company row is malformed.
-                Craft::error('Forklift could not evaluate the checkout gate: ' . $e->getMessage(), self::LOG_CATEGORY);
+            if ($verdict === null) {
+                return;
+            }
+
+            // Should a future Commerce make this cancelable, cancel rather than throw.
+            if ($event instanceof \craft\events\CancelableEvent) {
+                $event->isValid = false;
 
                 return;
             }
 
-            if ($verdict->approvalBypassed && $order->id) {
-                $this->orders->setValuesForOrder((int)$order->id, ['approvalBypassed' => true]);
-            }
-
-            if ($verdict->getIsAllowed()) {
-                return;
-            }
-
-            foreach ($verdict->getBlockingMessages() as $message) {
-                $order->addNotice(new \craft\commerce\models\OrderNotice([
-                    'type' => 'forklift',
-                    'attribute' => 'forklift',
-                    'message' => $message,
-                ]));
-            }
-
-            $event->isValid = false;
+            throw new UserException(implode(' ', $verdict->getBlockingMessages()) ?: Craft::t('forklift', 'This order can’t be placed.'));
         });
 
         Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function(Event $event) {

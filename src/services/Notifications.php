@@ -9,7 +9,6 @@ use craft\helpers\App;
 use craft\models\SystemMessage;
 use justinholtweb\forklift\elements\Quote;
 use justinholtweb\forklift\models\Approval;
-use justinholtweb\forklift\models\Role;
 use justinholtweb\forklift\Plugin;
 use yii\base\Component;
 

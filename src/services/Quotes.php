@@ -16,6 +16,7 @@ use craft\helpers\UrlHelper;
 use DateTime;
 use justinholtweb\forklift\db\Table;
 use justinholtweb\forklift\elements\Quote;
+use justinholtweb\forklift\events\QuoteEvent;
 use justinholtweb\forklift\models\QuoteLine;
 use justinholtweb\forklift\Plugin;
 use yii\base\Component;
@@ -51,6 +52,21 @@ use yii\base\Component;
  */
 class Quotes extends Component
 {
+    /** Cancelable. A quote is about to be priced, turned into a cart and marked sent. */
+    public const EVENT_BEFORE_SEND = 'beforeSend';
+
+    /** A quote was sent. */
+    public const EVENT_AFTER_SEND = 'afterSend';
+
+    /** A quote's order completed. No `before`: by then the money has moved. */
+    public const EVENT_AFTER_ACCEPT = 'afterAccept';
+
+    /** Cancelable. A quote is about to be declined and its cart discarded. */
+    public const EVENT_BEFORE_DECLINE = 'beforeDecline';
+
+    /** A quote was declined. */
+    public const EVENT_AFTER_DECLINE = 'afterDecline';
+
     /** @var array<int, QuoteLine[]> */
     private array $_lines = [];
 
@@ -369,6 +385,15 @@ class Quotes extends Component
             return false;
         }
 
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_SEND)) {
+            $event = new QuoteEvent(['quote' => $quote]);
+            $this->trigger(self::EVENT_BEFORE_SEND, $event);
+
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
         $cart = $this->materialise($quote);
 
         if ($cart === null) {
@@ -389,6 +414,10 @@ class Quotes extends Component
 
         if ($notify) {
             Plugin::getInstance()->notifications->quoteSent($quote);
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SEND)) {
+            $this->trigger(self::EVENT_AFTER_SEND, new QuoteEvent(['quote' => $quote]));
         }
 
         return true;
@@ -436,11 +465,28 @@ class Quotes extends Component
         $quote->orderId = (int)$order->id;
         $quote->respondedDate = DateTimeHelper::currentUTCDateTime();
 
-        return $this->saveQuote($quote, false);
+        if (!$this->saveQuote($quote, false)) {
+            return false;
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_ACCEPT)) {
+            $this->trigger(self::EVENT_AFTER_ACCEPT, new QuoteEvent(['quote' => $quote, 'order' => $order]));
+        }
+
+        return true;
     }
 
     public function markDeclined(Quote $quote, ?string $note = null): bool
     {
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_DECLINE)) {
+            $event = new QuoteEvent(['quote' => $quote, 'note' => $note]);
+            $this->trigger(self::EVENT_BEFORE_DECLINE, $event);
+
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
         $quote->quoteStatus = Quote::STATUS_DECLINED;
         $quote->respondedDate = DateTimeHelper::currentUTCDateTime();
 
@@ -450,7 +496,15 @@ class Quotes extends Component
 
         $this->_discardCart($quote);
 
-        return $this->saveQuote($quote, false);
+        if (!$this->saveQuote($quote, false)) {
+            return false;
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_DECLINE)) {
+            $this->trigger(self::EVENT_AFTER_DECLINE, new QuoteEvent(['quote' => $quote, 'note' => $note]));
+        }
+
+        return true;
     }
 
     /**

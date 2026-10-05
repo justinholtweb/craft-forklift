@@ -11,7 +11,6 @@ use craft\helpers\Db;
 use justinholtweb\forklift\db\Table;
 use justinholtweb\forklift\models\Member;
 use justinholtweb\forklift\models\Role;
-use justinholtweb\forklift\Plugin;
 use yii\base\Component;
 
 /**

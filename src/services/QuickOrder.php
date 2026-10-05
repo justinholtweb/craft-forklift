@@ -154,7 +154,7 @@ class QuickOrder extends Component
         while (($cells = fgetcsv($handle, 4096)) !== false) {
             $lineNumber++;
 
-            if ($cells === [null] || $cells === false) {
+            if ($cells === [null]) {
                 continue;
             }
 
@@ -300,26 +300,70 @@ class QuickOrder extends Component
             return null;
         }
 
-        $id = (new Query())
+        // Candidates by SKU, then only one a visitor may see. A SKU is not unique across a
+        // purchasable's drafts, revisions and trashed copies, so every match is tried.
+        $ids = (new Query())
             ->select(['id'])
             ->from(['{{%commerce_purchasables}}'])
             ->where(['sku' => $sku])
-            ->scalar();
+            ->column();
 
-        if (!$id) {
-            $id = (new Query())
+        if ($ids === []) {
+            $ids = (new Query())
                 ->select(['id'])
                 ->from(['{{%commerce_purchasables}}'])
-                ->where(['like', 'sku', $sku, false])
-                ->andWhere(['=', 'LOWER([[sku]])', mb_strtolower($sku)])
-                ->scalar();
+                ->where(['=', 'LOWER([[sku]])', mb_strtolower($sku)])
+                ->column();
         }
 
-        if (!$id) {
+        foreach ($ids as $id) {
+            $purchasable = $this->visiblePurchasable((int)$id);
+
+            if ($purchasable !== null) {
+                return $purchasable;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The purchasable, if a visitor may see it on this site.
+     *
+     * The pad, the lookup and the autocomplete are anonymous on purpose — trade buyers type SKUs
+     * before they sign in — so they must show exactly what the storefront would: loaded through the
+     * element type's own default query for the current site (enabled, not trashed, not a draft or
+     * revision), and for a variant, only while its product is live too. Before 5.1.0 they read
+     * `commerce_purchasables` directly, so any visitor could enumerate disabled, unreleased and
+     * trashed SKUs with their descriptions and prices.
+     */
+    public function visiblePurchasable(int $id): ?PurchasableInterface
+    {
+        $type = Craft::$app->getElements()->getElementTypeById($id);
+
+        if ($type === null || !is_subclass_of($type, PurchasableInterface::class)) {
             return null;
         }
 
-        return Commerce::getInstance()?->getPurchasables()->getPurchasableById((int)$id);
+        $siteId = Craft::$app->getSites()->getCurrentSite()->id;
+        $element = $type::find()->id($id)->siteId($siteId)->one();
+
+        if (!$element instanceof PurchasableInterface) {
+            return null;
+        }
+
+        // A variant is only as visible as its product: Commerce keeps a variant enabled when the
+        // product around it is disabled, scheduled or expired.
+        if (method_exists($element, 'getOwnerId') && ($ownerId = $element->getOwnerId()) !== null) {
+            $ownerType = Craft::$app->getElements()->getElementTypeById((int)$ownerId);
+
+            /** @var class-string<\craft\base\ElementInterface>|null $ownerType */
+            if ($ownerType === null || !$ownerType::find()->id($ownerId)->siteId($siteId)->exists()) {
+                return null;
+            }
+        }
+
+        return $element;
     }
 
     /**
@@ -335,25 +379,38 @@ class QuickOrder extends Component
             return [];
         }
 
-        $rows = (new Query())
-            ->select(['id', 'sku', 'description'])
+        // A prefix match, with the visitor's own `%`, `_` and `\` escaped — before 5.1.0 `q=%%`
+        // matched every SKU in the store. More candidates than asked for, because some will not
+        // be visible.
+        $ids = (new Query())
+            ->select(['id'])
             ->from(['{{%commerce_purchasables}}'])
-            ->where(['like', 'sku', $term . '%', false])
+            ->where(['like', 'sku', addcslashes($term, '%_\\') . '%', false])
             ->orderBy(['sku' => SORT_ASC])
-            ->limit($limit)
-            ->all();
+            ->limit($limit * 5)
+            ->column();
 
         $out = [];
 
-        foreach ($rows as $row) {
-            $price = Plugin::getInstance()->pricing->resolve((int)$row['id'], 1, $companyId);
+        foreach ($ids as $id) {
+            $purchasable = $this->visiblePurchasable((int)$id);
+
+            if ($purchasable === null || !$purchasable->getIsAvailable()) {
+                continue;
+            }
+
+            $price = Plugin::getInstance()->pricing->resolve($purchasable, 1, $companyId);
 
             $out[] = [
-                'purchasableId' => (int)$row['id'],
-                'sku' => (string)$row['sku'],
-                'description' => (string)$row['description'],
+                'purchasableId' => (int)$purchasable->getId(),
+                'sku' => (string)$purchasable->getSku(),
+                'description' => (string)$purchasable->getDescription(),
                 'price' => $price->price,
             ];
+
+            if (count($out) >= $limit) {
+                break;
+            }
         }
 
         return $out;
@@ -402,7 +459,7 @@ class QuickOrder extends Component
             return $row;
         }
 
-        if (method_exists($purchasable, 'getIsAvailable') && !$purchasable->getIsAvailable()) {
+        if (!$purchasable->getIsAvailable()) {
             $row->error = Craft::t('forklift', '“{sku}” is not available to order.', ['sku' => $row->sku]);
 
             return $row;
@@ -430,6 +487,7 @@ class QuickOrder extends Component
         try {
             // `inventoryTracked` is a public property on Commerce's base purchasable rather than
             // a getter, and a plugin's own purchasable type need not have it at all.
+            // @phpstan-ignore function.alreadyNarrowedType (Commerce declares it; a third-party purchasable may not)
             if (property_exists($purchasable, 'inventoryTracked') && !$purchasable->inventoryTracked) {
                 return null;
             }

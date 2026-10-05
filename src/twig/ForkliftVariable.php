@@ -213,7 +213,7 @@ class ForkliftVariable
             $user = Craft::$app->getUser()->getIdentity();
             // A guest quote belongs to nobody, so an anonymous visitor gets nothing rather than
             // everything — the difference between an empty list and a data leak.
-            $query->requesterId($user?->id ?? 0);
+            $query->requesterId($user->id ?? 0);
         }
 
         if ($criteria !== []) {

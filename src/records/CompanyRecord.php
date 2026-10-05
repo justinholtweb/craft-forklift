@@ -13,10 +13,10 @@ use justinholtweb\forklift\db\Table;
  * @property string $accountStatus
  * @property int|null $ownerId
  * @property int|null $termsId
- * @property string|null $creditLimit
+ * @property float|string|null $creditLimit
  * @property bool $creditEnabled
  * @property bool $requiresPoNumber
- * @property string|null $approvalThreshold
+ * @property float|string|null $approvalThreshold
  * @property bool $taxExempt
  * @property string|null $phone
  * @property string|null $website

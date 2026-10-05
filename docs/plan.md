@@ -71,7 +71,7 @@ Five, and no more. Each is the documented extension point for the job:
 | Hook | Used for |
 | --- | --- |
 | `LineItems::EVENT_POPULATE_LINE_ITEM` | contract and quote-pinned prices, applied *after* Commerce has set its own, so the snapshot still records the list price |
-| `Order::EVENT_BEFORE_COMPLETE_ORDER` | the checkout gate — a cancelled event is the only thing that reliably stops an order completing |
+| `Order::EVENT_BEFORE_COMPLETE_ORDER` | ~~the checkout gate~~ — **not cancelable** (a plain `yii\base\Event`), and it runs after payment. Since 5.1.0 the gate is `Payments::EVENT_BEFORE_PROCESS_PAYMENT`; this is its throwing backstop for unpaid completions |
 | `Taxes::EVENT_REGISTER_TAX_ENGINE` | swap in a tax adjuster that honours exemption certificates |
 | `Gateways::EVENT_REGISTER_GATEWAY_TYPES` | the purchase-order / net-terms gateway |
 | `Elements::EVENT_AFTER_SAVE_ELEMENT` (Order) | persist the `forklift_orders` row |

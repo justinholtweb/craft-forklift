@@ -1,7 +1,7 @@
 {
     "name": "justinholtweb/craft-forklift",
     "description": "B2B and wholesale for Craft Commerce — company accounts with buyers and roles, spend approvals, contract price lists, request-a-quote with pay-by-link, net terms and credit limits, quick order and CSV upload, and tax exemption certificates.",
-    "version": "5.0.0",
+    "version": "5.1.0",
     "type": "craft-plugin",
     "keywords": [
         "craftcms",
@@ -52,5 +52,10 @@
         "documentationUrl": "https://justinholt.com/plugins/craft-forklift/docs",
         "changelogUrl": "https://raw.githubusercontent.com/justinholtweb/craft-forklift/main/CHANGELOG.md",
         "class": "justinholtweb\\forklift\\Plugin"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "phpstan/phpstan": "^1.12 || ^2.2"
     }
 }
